@@ -93,8 +93,9 @@ function makeObject(spec){
     img.onload=()=>{
       const baseW=randomWidth(spec,img.naturalWidth,img.naturalHeight);
       const baseH=baseW*(img.naturalHeight/img.naturalWidth);
-      const vx=(Math.random()<.5?-1:1)*rand(70,145);
-      const vy=(Math.random()<.5?-1:1)*rand(70,145);
+      const mobile=window.innerWidth<=700;
+      const vx=(Math.random()<.5?-1:1)*rand(mobile?24:70,mobile?58:145);
+      const vy=(Math.random()<.5?-1:1)*rand(mobile?24:70,mobile?58:145);
       const o={
         spec,el:img,
         baseW,baseH,
@@ -139,16 +140,17 @@ function chooseStretch(o,now){
     o.tx=1;
     o.ty=1;
   }else{
-    const maxSx=Math.max(.45,Math.min(1.85,b.width/o.baseW));
-    const maxSy=Math.max(.45,Math.min(1.85,b.height/o.baseH));
+    const mobile=window.innerWidth<=700;
+    const maxSx=Math.max(.45,Math.min(mobile?1.35:1.85,b.width/o.baseW));
+    const maxSy=Math.max(.45,Math.min(mobile?1.35:1.85,b.height/o.baseH));
 
     const canHero=o.spec.kind==='date'||o.spec.kind==='lineup'||o.spec.kind==='pow';
     if(canHero && Math.random()<.09){
       o.tx=Math.max(.55,maxSx*rand(.9,1));
       o.ty=Math.max(.55,maxSy*rand(.9,1));
     }else{
-      o.tx=rand(.52,maxSx);
-      o.ty=rand(.52,maxSy);
+      o.tx=rand(mobile?.7:.52,maxSx);
+      o.ty=rand(mobile?.7:.52,maxSy);
     }
   }
   o.nextStretch=now+rand(600,1500);
@@ -218,7 +220,7 @@ addEventListener('resize',()=>{
 
 function buildMarbleBorder(){
   const order=['red-circle.png','green-circle.png','blue-circle.png','orange-circle.png'];
-  const target=54;
+  const target=window.innerWidth<=700?34:54;
   const vw=window.innerWidth;
   const vh=window.innerHeight;
 

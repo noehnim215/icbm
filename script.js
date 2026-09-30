@@ -8,7 +8,7 @@ const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsv
 
 const specs=[
   {id:'icbm',src:'icbm.png',kind:'icbm',always:true,min:380,max:.88,stretch:false,mediumLarge:true},
-  {id:'boiler',src:'logo-boiler.png',kind:'boiler',always:true,min:90,max:.42,stretch:true}
+  {id:'boiler',src:'braindead.png',kind:'boiler',always:true,min:90,max:.42,stretch:true}
 ];
 
 function rand(min,max){return min+Math.random()*(max-min)}

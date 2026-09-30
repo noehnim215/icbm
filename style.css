@@ -104,3 +104,8 @@ body{
   pointer-events:none;
   will-change:left,top;
 }
+
+/* RSVP variants: strongest distortion range */
+.poster-object.rsvp{
+  z-index:11;
+}

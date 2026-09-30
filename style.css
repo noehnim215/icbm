@@ -74,3 +74,43 @@ main img{position:absolute;display:block;height:auto;margin:0;max-width:none}
   .date-art{width:88vw;left:6vw;top:63vh}
   .boiler{width:27vw;left:67vw;top:70vh}
 }
+/* VISUAL LAYOUT EDITOR */
+.editor-toggle{
+  position:fixed;right:18px;top:18px;z-index:5000;border:2px solid #111;
+  background:#fff86b;color:#111;font:700 13px/1 Arial,sans-serif;
+  padding:10px 13px;border-radius:999px;cursor:pointer;box-shadow:3px 3px 0 #111
+}
+.editor-panel{
+  display:none;position:fixed;right:18px;top:68px;z-index:4999;width:240px;
+  background:rgba(20,20,20,.92);color:#fff;border:1px solid #777;border-radius:12px;
+  padding:12px;font:12px/1.35 Arial,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35)
+}
+body.edit-mode{cursor:default}
+body.edit-mode .cursor{display:none!important}
+body.edit-mode .editor-panel{display:block}
+body.edit-mode main img.editor-item{cursor:move;outline:1px dashed transparent;touch-action:none}
+body.edit-mode main img.editor-item.selected{outline:2px dashed #fff86b;outline-offset:4px}
+.editor-panel select,.editor-panel input,.editor-panel button{
+  width:100%;margin-top:6px;border:0;border-radius:6px;padding:7px;font:12px Arial,sans-serif
+}
+.editor-panel .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
+.editor-panel label{display:block;color:#ddd}
+.editor-panel .row input{margin-top:3px}
+.editor-panel button{cursor:pointer;font-weight:700}
+.editor-panel .hint{margin:9px 0 0;color:#bbb;font-size:11px}
+.resize-handle{
+  display:none;position:absolute;z-index:4900;width:20px;height:20px;
+  border:2px solid #111;background:#fff86b;border-radius:50%;cursor:nwse-resize;
+  transform:translate(-50%,-50%);touch-action:none
+}
+body.edit-mode .resize-handle.active{display:block}
+.editor-toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:6000;
+  background:#111;color:#fff;padding:9px 13px;border-radius:999px;font:12px Arial,sans-serif;
+  opacity:0;pointer-events:none;transition:opacity .15s
+}
+.editor-toast.show{opacity:1}
+@media(max-width:700px){
+ .editor-toggle{right:10px;top:10px}
+ .editor-panel{right:10px;top:58px;width:210px}
+}

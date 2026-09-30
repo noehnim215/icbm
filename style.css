@@ -114,3 +114,17 @@ body{
 .poster-object.icbm.layer-top1{z-index:20!important}
 .poster-object.icbm.layer-top2{z-index:24!important}
 .poster-object.icbm.layer-top3{z-index:28!important}
+
+/* subtle black edge gradient over the gray background */
+#stage::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:1;
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,.22), rgba(0,0,0,0) 72px),
+    linear-gradient(to top, rgba(0,0,0,.22), rgba(0,0,0,0) 72px),
+    linear-gradient(to right, rgba(0,0,0,.18), rgba(0,0,0,0) 72px),
+    linear-gradient(to left, rgba(0,0,0,.18), rgba(0,0,0,0) 72px);
+}

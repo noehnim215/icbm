@@ -21,6 +21,13 @@ const icbmLayerRoll=Math.random();
 const icbmLayer=icbmLayerRoll<.69?'top3':(icbmLayerRoll<.845?'top2':'top1');
 specs[0].layer=icbmLayer;
 
+const compositionRoll=Math.random();
+const compositionMode=
+  compositionRoll<.45?'textLarge_powSmall':
+  compositionRoll<.85?'powLarge_textSmall':
+  compositionRoll<.90?'allSmall':
+  'powHugeBack_textTiny';
+
 const chosen=[
   ...specs,
   {id:'date',src:pick(DATE_POOL),kind:'date',min:130,max:.76,stretch:true},
@@ -33,7 +40,9 @@ const powCandidates=shuffled(POW_POOL);
 if(Math.random()<.22) powCandidates.splice(Math.floor(Math.random()*(powCandidates.length+1)),0,POW_RARE);
 powCandidates.slice(0,powCount).forEach((src,i)=>{
   const r=Math.random();
-  const layer=r<.40?'back':(r<.75?'middle':'top');
+  const layer=compositionMode==='powHugeBack_textTiny'
+    ? 'back'
+    : (r<.40?'back':(r<.75?'middle':'top'));
   chosen.push({
     id:'pow-'+i,
     src,
@@ -47,7 +56,7 @@ powCandidates.slice(0,powCount).forEach((src,i)=>{
 });
 
 // Sometimes one date / lineup / POW starts nearly full-screen.
-if(Math.random()<.38){
+if(false && Math.random()<.38){
   const candidates=chosen.filter(x=>x.kind==='date'||x.kind==='lineup'||x.kind==='pow');
   pick(candidates).heroHuge=true;
 }
@@ -81,6 +90,26 @@ function innerBounds(){
 function randomWidth(spec,naturalW,naturalH){
   const b=innerBounds();
   const aspect=naturalW/naturalH;
+
+  const widthInRange=(minPct,maxPct)=>{
+    const target=b.width*rand(minPct,maxPct);
+    const heightCap=b.height*aspect*.96;
+    return Math.max(36,Math.min(target,heightCap));
+  };
+
+  if(spec.kind==='date' || spec.kind==='lineup'){
+    if(compositionMode==='textLarge_powSmall') return widthInRange(.60,.88);
+    if(compositionMode==='powLarge_textSmall') return widthInRange(.10,.30);
+    if(compositionMode==='allSmall') return widthInRange(.10,.40);
+    if(compositionMode==='powHugeBack_textTiny') return widthInRange(.05,.30);
+  }
+
+  if(spec.kind==='pow'){
+    if(compositionMode==='textLarge_powSmall') return widthInRange(.10,.30);
+    if(compositionMode==='powLarge_textSmall') return widthInRange(.65,.98);
+    if(compositionMode==='allSmall') return widthInRange(.10,.20);
+    if(compositionMode==='powHugeBack_textTiny') return widthInRange(.60,1.00);
+  }
 
   if(spec.mediumLarge){
     const minW=Math.min(b.width*.46,Math.max(300,spec.min));
@@ -286,6 +315,12 @@ function makeObject(spec){
 function chooseStretch(o,now){
   const b=innerBounds();
 
+  if(compositionMode==='powHugeBack_textTiny' && o.spec.kind==='pow'){
+    o.spec.layer='back';
+    o.el.classList.remove('layer-middle','layer-top');
+    o.el.classList.add('layer-back');
+  }
+
   if(o.spec.kind==='pow' && o.spec.layer==='top'){
     const currentW=o.baseW*o.sx;
     if(currentW>=b.width*.62){
@@ -309,14 +344,8 @@ function chooseStretch(o,now){
       const maxSx=Math.max(.45,Math.min(mobile?1.35:1.85,b.width/o.baseW));
       const maxSy=Math.max(.45,Math.min(mobile?1.35:1.85,b.height/o.baseH));
 
-      const canHero=o.spec.kind==='date'||o.spec.kind==='lineup'||o.spec.kind==='pow';
-      if(canHero && Math.random()<.09){
-        o.tx=Math.max(.55,maxSx*rand(.9,1));
-        o.ty=Math.max(.55,maxSy*rand(.9,1));
-      }else{
-        o.tx=rand(mobile?.7:.52,maxSx);
-        o.ty=rand(mobile?.7:.52,maxSy);
-      }
+      o.tx=rand(mobile?.7:.52,maxSx);
+      o.ty=rand(mobile?.7:.52,maxSy);
     }
   }
   o.nextStretch=now+rand(600,1500);
@@ -518,6 +547,7 @@ function tickMarbles(now){
 }
 
 (async()=>{
+  document.body.classList.add('composition-'+compositionMode);
   buildMarbleBorder();
   setupMarbleChaos();
   for(const spec of chosen) await makeObject(spec);

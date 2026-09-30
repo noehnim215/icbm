@@ -3,10 +3,10 @@ html,body{margin:0;background:#929292;min-height:100%}
 body{cursor:none;overflow-x:hidden}
 main{width:min(1100px,calc(100vw - 150px));min-height:1700px;margin:0 auto;padding:70px 40px 100px;display:flex;flex-direction:column;align-items:center;position:relative}
 .title-art{width:min(900px,88%);height:auto;display:block;margin:0 auto 70px;filter:drop-shadow(3px 6px 4px #444)}
-.lineup-art{width:min(760px,78%);height:auto;display:block;position:relative;z-index:4;filter:drop-shadow(4px 6px 4px #444);transform:translate(-7%,0);margin:0 auto -190px}
+.lineup-art{width:min(760px,78%);height:auto;display:block;position:relative;z-index:4;filter:drop-shadow(4px 6px 4px #444);transform:translate(-7%,0);margin:0 auto -260px}
 .pow{display:block;height:auto;object-fit:contain;position:relative;z-index:1}
 .cyan{width:min(900px,88%);margin:0 auto 95px}
-.date-art{width:min(560px,60%);height:auto;display:block;position:relative;z-index:4;filter:drop-shadow(4px 6px 3px #444);transform:translate(-22%,0);margin:0 auto -145px}
+.date-art{width:min(560px,60%);height:auto;display:block;position:relative;z-index:4;filter:drop-shadow(4px 6px 3px #444);transform:translate(-22%,0);margin:0 auto -205px}
 .pink{width:min(720px,70%);margin:0 auto 85px}
 .boiler{width:min(260px,28%);height:auto;display:block;margin:0 auto;position:relative;z-index:3}
 .cursor{position:fixed;width:28px;height:28px;border-radius:50%;background:#fff86b;box-shadow:0 0 0 5px #222,0 0 16px #ff35c7;z-index:999;pointer-events:none;transform:translate(-50%,-50%)}
@@ -29,4 +29,34 @@ main{width:min(1100px,calc(100vw - 150px));min-height:1700px;margin:0 auto;paddi
  .pink{width:96%;margin-bottom:60px}
  .boiler{width:42%}
  .cursor{display:none}
+}
+/* HARD FIX: visible four-side marble border */
+.marbles{position:fixed!important;z-index:100!important;pointer-events:none!important;display:block!important;background:none!important;overflow:hidden}
+.marbles.top,.marbles.bottom{left:0!important;width:100vw!important;height:78px!important}
+.marbles.top{top:0!important}.marbles.bottom{bottom:0!important}
+.marbles.left,.marbles.right{top:0!important;height:100vh!important;width:78px!important}
+.marbles.left{left:0!important}.marbles.right{right:0!important}
+.marbles::before{content:"";position:absolute;inset:0;background-repeat:repeat}
+.marbles.top::before,.marbles.bottom::before{
+ background-image:url("red-circle.png"),url("blue-circle.png"),url("green-circle.png"),url("orange-circle.png");
+ background-size:78px 78px;background-repeat:repeat-x;
+ background-position:0 0,78px 0,156px 0,234px 0
+}
+.marbles.left::before,.marbles.right::before{
+ background-image:url("red-circle.png"),url("blue-circle.png"),url("green-circle.png"),url("orange-circle.png");
+ background-size:78px 78px;background-repeat:repeat-y;
+ background-position:0 0,0 78px,0 156px,0 234px
+}
+/* desktop poster overlap */
+@media(min-width:701px){
+ .lineup-art{margin-bottom:-260px!important;transform:translate(-7%,0)!important}
+ .cyan{margin-top:0!important}
+ .date-art{margin-bottom:-205px!important;transform:translate(-22%,0)!important}
+ .pink{margin-top:0!important}
+}
+@media(max-width:700px){
+ .marbles.top,.marbles.bottom{height:48px!important}
+ .marbles.left,.marbles.right{width:48px!important}
+ .marbles.top::before,.marbles.bottom::before{background-size:48px 48px;background-position:0 0,48px 0,96px 0,144px 0}
+ .marbles.left::before,.marbles.right::before{background-size:48px 48px;background-position:0 0,0 48px,0 96px,0 144px}
 }

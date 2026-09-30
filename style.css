@@ -3,15 +3,28 @@ html,body{margin:0;width:100%;min-height:100%;background:#929292}
 body{
   cursor:none;
   overflow-x:hidden;
-  background:#929292 url("back-ground1.png") center center/100vw 100vh no-repeat fixed;
+  background:#929292;
+}
+body::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:0;
+  transform:translateX(-50%);
+  width:1114px;
+  height:1377px;
+  background:url("back-ground1.png") top center/1114px 1377px no-repeat;
+  z-index:0;
+  pointer-events:none;
 }
 .marbles{display:none!important}
 main{
   position:relative;
-  width:100vw;
-  height:100vh;
-  min-height:820px;
-  margin:0;
+  z-index:1;
+  width:1114px;
+  height:1377px;
+  min-height:1377px;
+  margin:0 auto;
   padding:0;
   overflow:hidden;
 }
@@ -64,8 +77,8 @@ main img{position:absolute;display:block;height:auto;margin:0;max-width:none}
   transform:translate(-50%,-50%)
 }
 @media(max-width:700px){
-  body{cursor:auto;background-size:100vw 100vh}
-  main{min-height:700px}
+  body{cursor:auto}
+  main{min-height:1377px}
   .cursor{display:none}
   .title-art{width:62vw;left:19vw;top:6vh}
   .lineup-art{width:54vw;left:8vw;top:25vh}

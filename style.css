@@ -149,3 +149,11 @@ body.edit-mode .resize-handle.active{display:block}
   position:static;
   max-width:none;
 }
+
+html,body,main{background:#929292!important;background-image:none!important}
+body::before,body::after,main::before,main::after{content:none!important;display:none!important}
+.marble-frame{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;z-index:50!important;pointer-events:none!important}
+.marble-top,.marble-bottom{left:0!important;right:0!important;width:100vw!important}
+.marble-left,.marble-right{top:var(--edge-size,54px)!important;bottom:var(--edge-size,54px)!important}
+.marble-edge{gap:0!important;padding:0!important;margin:0!important;line-height:0!important;overflow:hidden!important}
+.marble-edge img{position:absolute!important;display:block!important;margin:0!important;padding:0!important;max-width:none!important;object-fit:contain!important}

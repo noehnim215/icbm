@@ -3,6 +3,7 @@ const stage=document.getElementById('stage');
 const DATE_POOL=['date.png','date-2.png','date3.png','date4.png','date5.png'];
 const LINEUP_POOL=['lineup.png','lineup-2.png','lineup3.png','lineup4.png'];
 const POW_POOL=['pow.png','small-pow.png','pow3.png','pow4.png'];
+const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsvp6.png','rsvp7.png'];
 
 const specs=[
   {id:'icbm',src:'icbm.png',kind:'icbm',always:true,min:320,max:.72,stretch:false,mediumLarge:true},
@@ -17,7 +18,8 @@ function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 const chosen=[
   ...specs,
   {id:'date',src:pick(DATE_POOL),kind:'date',min:130,max:.76,stretch:true},
-  {id:'lineup',src:pick(LINEUP_POOL),kind:'lineup',min:150,max:.72,stretch:true}
+  {id:'lineup',src:pick(LINEUP_POOL),kind:'lineup',min:150,max:.72,stretch:true},
+  {id:'rsvp',src:pick(RSVP_POOL),kind:'rsvp',min:120,max:.78,stretch:true,rsvpExtreme:true}
 ];
 
 const powCount=Math.random()<.5?2:3;
@@ -82,6 +84,12 @@ function randomWidth(spec,naturalW,naturalH){
     const fullness=spec.kind==='pow'?rand(.94,1):rand(.88,1);
     const full=Math.min(b.width*.98,b.height*aspect*.98);
     return Math.max(spec.min,full*fullness);
+  }
+
+  if(spec.rsvpExtreme){
+    const maxByViewport=Math.max(spec.min,Math.min(b.width*.82,b.height*aspect*.82));
+    const minW=Math.min(spec.min,maxByViewport);
+    return rand(minW,maxByViewport);
   }
 
   const maxByViewport=Math.max(spec.min,Math.min(
@@ -154,16 +162,24 @@ function chooseStretch(o,now){
     o.ty=1;
   }else{
     const mobile=window.innerWidth<=700;
-    const maxSx=Math.max(.45,Math.min(mobile?1.35:1.85,b.width/o.baseW));
-    const maxSy=Math.max(.45,Math.min(mobile?1.35:1.85,b.height/o.baseH));
 
-    const canHero=o.spec.kind==='date'||o.spec.kind==='lineup'||o.spec.kind==='pow';
-    if(canHero && Math.random()<.09){
-      o.tx=Math.max(.55,maxSx*rand(.9,1));
-      o.ty=Math.max(.55,maxSy*rand(.9,1));
+    if(o.spec.rsvpExtreme){
+      const maxSx=Math.max(.3,Math.min(mobile?2.2:3.4,(b.width/o.baseW)*1.05));
+      const maxSy=Math.max(.3,Math.min(mobile?2.2:3.4,(b.height/o.baseH)*1.05));
+      o.tx=rand(mobile?.45:.28,maxSx);
+      o.ty=rand(mobile?.45:.28,maxSy);
     }else{
-      o.tx=rand(mobile?.7:.52,maxSx);
-      o.ty=rand(mobile?.7:.52,maxSy);
+      const maxSx=Math.max(.45,Math.min(mobile?1.35:1.85,b.width/o.baseW));
+      const maxSy=Math.max(.45,Math.min(mobile?1.35:1.85,b.height/o.baseH));
+
+      const canHero=o.spec.kind==='date'||o.spec.kind==='lineup'||o.spec.kind==='pow';
+      if(canHero && Math.random()<.09){
+        o.tx=Math.max(.55,maxSx*rand(.9,1));
+        o.ty=Math.max(.55,maxSy*rand(.9,1));
+      }else{
+        o.tx=rand(mobile?.7:.52,maxSx);
+        o.ty=rand(mobile?.7:.52,maxSy);
+      }
     }
   }
   o.nextStretch=now+rand(600,1500);

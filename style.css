@@ -79,3 +79,10 @@ body{
 @media(max-width:700px){
   .marble-edge img{transform:scale(.82)!important}
 }
+
+/* Layer order: POW stays behind the main typography/logos */
+.poster-object.pow{z-index:4!important}
+.poster-object.date,
+.poster-object.lineup{z-index:10!important}
+.poster-object.icbm{z-index:12!important}
+.poster-object.boiler{z-index:13!important}

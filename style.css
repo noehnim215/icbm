@@ -60,3 +60,34 @@ main{width:min(1100px,calc(100vw - 150px));min-height:1700px;margin:0 auto;paddi
  .marbles.top::before,.marbles.bottom::before{background-size:48px 48px;background-position:0 0,48px 0,96px 0,144px 0}
  .marbles.left::before,.marbles.right::before{background-size:48px 48px;background-position:0 0,0 48px,0 96px,0 144px}
 }
+/* USE THE PROVIDED FRAME ART AS THE SITE BACKGROUND */
+html{background:#929292}
+body{
+ background-color:#929292!important;
+ background-image:url("back-ground.png")!important;
+ background-position:center center!important;
+ background-size:100vw 100vh!important;
+ background-repeat:no-repeat!important;
+ background-attachment:fixed!important;
+ min-height:100vh;
+}
+.marbles{display:none!important}
+main{
+ min-height:2800px!important;
+ width:min(1000px,calc(100vw - 190px))!important;
+ padding-top:120px!important;
+ padding-bottom:180px!important;
+}
+@media(max-width:700px){
+ body{
+  background-position:center center!important;
+  background-size:100vw 100vh!important;
+  background-attachment:fixed!important;
+ }
+ main{
+  min-height:2300px!important;
+  width:calc(100vw - 105px)!important;
+  padding-top:85px!important;
+  padding-bottom:120px!important;
+ }
+}

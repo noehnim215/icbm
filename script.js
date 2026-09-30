@@ -89,7 +89,14 @@ function placeRandom(o){
   const w=o.baseW*o.sx;
   const h=o.baseH*o.sy;
   o.x=rand(b.left,Math.max(b.left,b.right-w));
-  o.y=rand(b.top,Math.max(b.top,b.bottom-h));
+
+  const maxY=Math.max(b.top,b.bottom-h);
+  if(o.spec.kind==='pow'){
+    const lowerStart=b.top+(b.height*.52);
+    o.y=rand(Math.min(lowerStart,maxY),maxY);
+  }else{
+    o.y=rand(b.top,maxY);
+  }
 }
 
 function apply(o){
@@ -111,7 +118,7 @@ function makeObject(spec){
       const baseH=baseW*(img.naturalHeight/img.naturalWidth);
       const mobile=window.innerWidth<=700;
       const vx=(Math.random()<.5?-1:1)*rand(mobile?24:70,mobile?58:145);
-      const vy=(Math.random()<.5?-1:1)*rand(mobile?24:70,mobile?58:145);
+      const vy=(spec.kind==='pow'?1:(Math.random()<.5?-1:1))*rand(mobile?24:70,mobile?58:145);
       const o={
         spec,el:img,
         baseW,baseH,

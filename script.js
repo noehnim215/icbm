@@ -2,13 +2,13 @@ const stage=document.getElementById('stage');
 
 const DATE_POOL=['date.png','date-2.png','date3.png','date4.png','date5.png'];
 const LINEUP_POOL=['lineup.png','lineup-2.png','lineup3.png','lineup4.png'];
-const POW_POOL=['pow.png','small-pow.png','pow4.png'];
+const POW_POOL=['pow.png','small-pow.png','pow4.png','pow5.png'];
 const POW_RARE='pow3.png';
 const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsvp6.png','rsvp7.png'];
 
 const specs=[
   {id:'icbm',src:'icbm.png',kind:'icbm',always:true,min:380,max:.88,stretch:false,mediumLarge:true},
-  {id:'boiler',src:'braindead.png',kind:'boiler',always:true,min:90,max:.42,stretch:true}
+  {id:'boiler',src:'braindead.png',kind:'boiler',always:true,min:90,max:.42,stretch:Math.random()<.10}
 ];
 
 function rand(min,max){return min+Math.random()*(max-min)}
@@ -133,6 +133,52 @@ function apply(o){
   o.el.style.transform='scale('+o.sx+','+o.sy+')';
 }
 
+function spawnPowFromRsvp(cx,cy){
+  const src=pick([...POW_POOL,POW_RARE]);
+  const img=new Image();
+  img.src=src;
+  img.alt='pow';
+  img.className='poster-object pow layer-top';
+  img.draggable=false;
+
+  img.onload=()=>{
+    const b=innerBounds();
+    const aspect=img.naturalWidth/img.naturalHeight;
+    const maxW=Math.min(b.width*.56,b.height*aspect*.56);
+    const baseW=rand(Math.max(90,maxW*.42),Math.max(110,maxW));
+    const baseH=baseW*(img.naturalHeight/img.naturalWidth);
+    const mobile=window.innerWidth<=700;
+    const o={
+      spec:{id:'rsvp-pow-'+Date.now(),src,kind:'pow',min:90,max:.56,stretch:true,layer:'top'},
+      el:img,
+      baseW,baseH,
+      x:clamp(cx-baseW/2,b.left,Math.max(b.left,b.right-baseW)),
+      y:clamp(cy-baseH/2,b.top,Math.max(b.top,b.bottom-baseH)),
+      vx:(Math.random()<.5?-1:1)*rand(mobile?22:65,mobile?55:135),
+      vy:(Math.random()<.5?-1:1)*rand(mobile?22:65,mobile?55:135),
+      sx:.18,sy:.18,
+      tx:1,ty:1,
+      bursting:false,
+      nextStretch:performance.now()+rand(500,1200)
+    };
+
+    stage.appendChild(img);
+    objects.push(o);
+    apply(o);
+
+    const start=performance.now();
+    const pop=now=>{
+      const t=Math.min(1,(now-start)/260);
+      const eased=1-Math.pow(1-t,3);
+      o.sx=.18+(.82*eased);
+      o.sy=.18+(.82*eased);
+      apply(o);
+      if(t<1) requestAnimationFrame(pop);
+    };
+    requestAnimationFrame(pop);
+  };
+}
+
 function explodeRsvp(o){
   if(o.bursting) return;
   o.bursting=true;
@@ -176,12 +222,7 @@ function explodeRsvp(o){
     }).finished.finally(()=>p.remove());
   }
 
-  const ring=document.createElement('div');
-  ring.className='rsvp-burst-ring';
-  ring.style.left=cx+'px';
-  ring.style.top=cy+'px';
-  document.body.appendChild(ring);
-  ring.addEventListener('animationend',()=>ring.remove(),{once:true});
+  spawnPowFromRsvp(cx,cy);
 
   setTimeout(()=>{
     o.el.style.visibility='';
@@ -226,8 +267,11 @@ function makeObject(spec){
       apply(o);
 
       if(spec.kind==='rsvp'){
-        img.addEventListener('pointerenter',()=>explodeRsvp(o));
-        img.addEventListener('click',()=>explodeRsvp(o));
+        img.addEventListener('pointerdown',e=>e.stopPropagation());
+        img.addEventListener('click',e=>{
+          e.stopPropagation();
+          explodeRsvp(o);
+        });
       }
 
       objects.push(o);

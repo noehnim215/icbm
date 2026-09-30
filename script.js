@@ -49,6 +49,12 @@ let raf=null;
 let last=performance.now();
 let globallyPaused=false;
 
+let marbleChaosMode='none';
+let marbleChaosObjects=[];
+let marbleChaosLayer=null;
+let marbleChaosRaf=null;
+let marbleChaosLast=performance.now();
+
 function innerBounds(){
   const edge=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--edge-size'))||54;
   return {
@@ -207,7 +213,7 @@ function armIdle(){
     idle=true;
     const now=performance.now();
     objects.forEach(o=>chooseStretch(o,now));
-  },5000);
+  },1400);
 }
 
 // Before DVD mode: movement keeps delaying the 5-second timer.
@@ -281,8 +287,121 @@ function buildMarbleBorder(){
   }
 }
 
+function setupMarbleChaos(){
+  const roll=Math.random();
+
+  // 1 in 20: marbles fall straight down and disappear.
+  if(roll<0.05){
+    marbleChaosMode='disappear';
+  }
+  // Otherwise about 1 in 10: marbles themselves animate.
+  else if(roll<0.15){
+    marbleChaosMode=Math.random()<0.5?'dvd':'pile';
+  }else{
+    marbleChaosMode='none';
+    return;
+  }
+
+  const source=[...document.querySelectorAll('.marble-edge img')];
+  if(!source.length)return;
+
+  marbleChaosLayer=document.createElement('div');
+  marbleChaosLayer.className='marble-chaos-layer';
+  document.body.appendChild(marbleChaosLayer);
+
+  const size=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--edge-size'))||54;
+
+  source.forEach((img,i)=>{
+    const r=img.getBoundingClientRect();
+    const clone=img.cloneNode(true);
+    clone.className='marble-chaos-ball';
+    clone.style.left=r.left+'px';
+    clone.style.top=r.top+'px';
+    clone.style.width=r.width+'px';
+    clone.style.height=r.height+'px';
+    marbleChaosLayer.appendChild(clone);
+
+    let vx=(Math.random()<.5?-1:1)*rand(55,130);
+    let vy=(Math.random()<.5?-1:1)*rand(55,130);
+
+    const cols=Math.max(1,Math.floor(window.innerWidth/size));
+    const row=Math.floor(i/cols);
+    const col=i%cols;
+    const targetX=col*size;
+    const targetY=window.innerHeight-size*(row+1);
+
+    marbleChaosObjects.push({
+      el:clone,
+      x:r.left,
+      y:r.top,
+      vx,vy,
+      targetX,
+      targetY,
+      settled:false,
+      delay:rand(0,700),
+      born:performance.now()
+    });
+  });
+
+  document.querySelector('.marble-frame').style.visibility='hidden';
+
+  marbleChaosLast=performance.now();
+  marbleChaosRaf=requestAnimationFrame(tickMarbles);
+}
+
+function tickMarbles(now){
+  if(marbleChaosMode==='none')return;
+  const dt=Math.min(.035,(now-marbleChaosLast)/1000||0);
+  marbleChaosLast=now;
+
+  if(!globallyPaused){
+    for(const o of marbleChaosObjects){
+      if(now-o.born<o.delay)continue;
+
+      if(marbleChaosMode==='dvd'){
+        o.x+=o.vx*dt;
+        o.y+=o.vy*dt;
+        const w=o.el.offsetWidth,h=o.el.offsetHeight;
+        if(o.x<=0){o.x=0;o.vx=Math.abs(o.vx)}
+        if(o.y<=0){o.y=0;o.vy=Math.abs(o.vy)}
+        if(o.x+w>=innerWidth){o.x=Math.max(0,innerWidth-w);o.vx=-Math.abs(o.vx)}
+        if(o.y+h>=innerHeight){o.y=Math.max(0,innerHeight-h);o.vy=-Math.abs(o.vy)}
+      }
+
+      if(marbleChaosMode==='pile' && !o.settled){
+        o.vy+=900*dt;
+        o.x+=o.vx*dt*.22;
+        o.y+=o.vy*dt;
+
+        // steer gently into a non-overlapping grid pile
+        o.x+=(o.targetX-o.x)*Math.min(1,dt*1.4);
+        if(o.y>=o.targetY){
+          o.y=o.targetY;
+          o.x=o.targetX;
+          o.vx=0;o.vy=0;
+          o.settled=true;
+        }
+      }
+
+      if(marbleChaosMode==='disappear'){
+        o.vy=Math.max(120,o.vy+650*dt);
+        o.y+=o.vy*dt;
+        if(o.y>innerHeight+o.el.offsetHeight){
+          o.el.style.display='none';
+        }
+      }
+
+      o.el.style.left=o.x+'px';
+      o.el.style.top=o.y+'px';
+    }
+  }
+
+  marbleChaosRaf=requestAnimationFrame(tickMarbles);
+}
+
 (async()=>{
   buildMarbleBorder();
+  setupMarbleChaos();
   for(const spec of chosen) await makeObject(spec);
   armIdle();
   cancelAnimationFrame(raf);

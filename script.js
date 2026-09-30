@@ -154,8 +154,9 @@ function buildMarbleBorder(){
   document.documentElement.style.setProperty('--edge-size',edgeSize+'px');
 
   const verticalAvailable=Math.max(0,vh-edgeSize*2);
-  const verticalCount=Math.max(4,Math.ceil(verticalAvailable/edgeSize/4)*4);
-  const verticalStep=verticalCount?verticalAvailable/verticalCount:edgeSize;
+  const verticalCount=Math.max(1,Math.floor(verticalAvailable/edgeSize));
+  const verticalStep=edgeSize;
+  const verticalOffset=Math.max(0,(verticalAvailable-verticalCount*edgeSize)/2);
 
   const make=(src,left,top,w,h)=>{
     const img=document.createElement('img');
@@ -182,7 +183,7 @@ function buildMarbleBorder(){
     bottom.appendChild(make(order[i%4],x,0,edgeSize,edgeSize));
   }
   for(let i=0;i<verticalCount;i++){
-    const y=i*verticalStep;
+    const y=verticalOffset+i*verticalStep;
     left.appendChild(make(order[i%4],0,y,edgeSize,verticalStep));
     right.appendChild(make(order[i%4],0,y,edgeSize,verticalStep));
   }
@@ -233,9 +234,11 @@ function startIdle(){
     const stretchable=!src.classList.contains('title-art');
     idleObjects.push({
       el:clone,
-      x:r.left,y:r.top,w:r.width,h:r.height,
+      x:Math.max(54,Math.min(r.left,window.innerWidth-r.width-54)),
+      y:Math.max(54,Math.min(r.top,window.innerHeight-r.height-54)),
+      w:r.width,h:r.height,
       vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
-      sx:1,sy:1,tx:stretchable?rand(.55,1.55):1,ty:stretchable?rand(.55,1.55):1,
+      sx:1,sy:1,tx:1,ty:1,
       stretchable,
       nextStretch:performance.now()+rand(700,1800)
     });
@@ -252,9 +255,14 @@ function tickIdle(now){
   const vw=window.innerWidth, vh=window.innerHeight;
 
   idleObjects.forEach(o=>{
+    const edge=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--edge-size'))||54;
+    const minX=edge, minY=edge, maxW=Math.max(80,vw-edge*2), maxH=Math.max(80,vh-edge*2);
+
     if(o.stretchable && now>=o.nextStretch){
-      o.tx=rand(.5,1.65);
-      o.ty=rand(.5,1.65);
+      const maxSx=Math.max(.45,Math.min(1.45,maxW/o.w));
+      const maxSy=Math.max(.45,Math.min(1.45,maxH/o.h));
+      o.tx=rand(.55,maxSx);
+      o.ty=rand(.55,maxSy);
       o.nextStretch=now+rand(700,1800);
     }
     const ease=Math.min(1,dt*3.4);
@@ -264,10 +272,12 @@ function tickIdle(now){
     const rw=o.w*o.sx, rh=o.h*o.sy;
     o.x+=o.vx*dt; o.y+=o.vy*dt;
 
-    if(o.x<=0){o.x=0;o.vx=Math.abs(o.vx)}
-    if(o.y<=0){o.y=0;o.vy=Math.abs(o.vy)}
-    if(o.x+rw>=vw){o.x=Math.max(0,vw-rw);o.vx=-Math.abs(o.vx)}
-    if(o.y+rh>=vh){o.y=Math.max(0,vh-rh);o.vy=-Math.abs(o.vy)}
+    const maxX=Math.max(minX,minX+maxW-rw);
+    const maxY=Math.max(minY,minY+maxH-rh);
+    if(o.x<=minX){o.x=minX;o.vx=Math.abs(o.vx)}
+    if(o.y<=minY){o.y=minY;o.vy=Math.abs(o.vy)}
+    if(o.x>=maxX){o.x=maxX;o.vx=-Math.abs(o.vx)}
+    if(o.y>=maxY){o.y=maxY;o.vy=-Math.abs(o.vy)}
 
     o.el.style.left=o.x+'px';
     o.el.style.top=o.y+'px';

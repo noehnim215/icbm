@@ -140,3 +140,23 @@ panel.querySelector('.copy-css').addEventListener('click',async()=>{
   catch{prompt('Copy this CSS:',out)}
 });
 addEventListener('resize',updateHandle);
+
+
+// Build marble border using actual PNGs, no spacing.
+function buildMarbleBorder(){
+  const order=['red-circle.png','green-circle.png','blue-circle.png','orange-circle.png'];
+  const size=54;
+  document.querySelectorAll('.marble-edge').forEach(edge=>{
+    const horizontal=edge.classList.contains('marble-top')||edge.classList.contains('marble-bottom');
+    const length=horizontal?1200:(1500-size*2);
+    const count=Math.ceil(length/size)+1;
+    edge.replaceChildren(...Array.from({length:count},(_,i)=>{
+      const img=document.createElement('img');
+      img.src=order[i%order.length];
+      img.alt='';
+      img.draggable=false;
+      return img;
+    }));
+  });
+}
+buildMarbleBorder();

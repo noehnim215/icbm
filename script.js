@@ -225,7 +225,7 @@ function startIdle(){
     clone.style.height=r.height+'px';
     clone.style.left=r.left+'px';
     clone.style.top=r.top+'px';
-    clone.style.transformOrigin='center center';
+    clone.style.transformOrigin='top left';
     idleLayer.appendChild(clone);
 
     const speed=rand(85,150);

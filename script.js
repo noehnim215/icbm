@@ -163,8 +163,6 @@ function apply(o){
   o.el.style.transform='scale('+o.sx+','+o.sy+')';
 }
 
-let activeRsvpPow=null;
-
 function spawnPowFromRsvp(cx,cy){
   const src=Math.random()<.37
     ? pick(RSVP_POW_POOL)
@@ -176,13 +174,6 @@ function spawnPowFromRsvp(cx,cy){
   img.draggable=false;
 
   img.onload=()=>{
-    if(activeRsvpPow){
-      const idx=objects.indexOf(activeRsvpPow);
-      if(idx>=0) objects.splice(idx,1);
-      activeRsvpPow.el.remove();
-      activeRsvpPow=null;
-    }
-
     const b=innerBounds();
     const aspect=img.naturalWidth/img.naturalHeight;
     const fitW=Math.min(b.width*.9,b.height*aspect*.9);
@@ -213,7 +204,6 @@ function spawnPowFromRsvp(cx,cy){
 
     stage.appendChild(img);
     objects.push(o);
-    activeRsvpPow=o;
     apply(o);
 
     const start=performance.now();
@@ -229,6 +219,61 @@ function spawnPowFromRsvp(cx,cy){
   };
 }
 
+function spawnNextRsvp(cx,cy,previousWidth,previousSrc){
+  const options=RSVP_POOL.filter(src=>src!==previousSrc);
+  const src=pick(options.length?options:RSVP_POOL);
+  const img=new Image();
+  img.src=src;
+  img.alt='rsvp';
+  img.className='poster-object rsvp';
+  img.draggable=false;
+
+  img.onload=()=>{
+    const b=innerBounds();
+    const baseW=Math.max(
+      window.innerWidth<=700?58:72,
+      previousWidth*rand(.62,.78)
+    );
+    const baseH=baseW*(img.naturalHeight/img.naturalWidth);
+    const mobile=window.innerWidth<=700;
+
+    const spec={
+      id:'rsvp-'+Date.now(),
+      src,
+      kind:'rsvp',
+      min:58,
+      max:.78,
+      stretch:true,
+      rsvpExtreme:true
+    };
+
+    const next={
+      spec,
+      el:img,
+      baseW,
+      baseH,
+      x:clamp(cx-baseW/2,b.left,Math.max(b.left,b.right-baseW)),
+      y:clamp(cy-baseH/2,b.top,Math.max(b.top,b.bottom-baseH)),
+      vx:(Math.random()<.5?-1:1)*rand(mobile?24:70,mobile?58:145),
+      vy:(Math.random()<.5?-1:1)*rand(mobile?24:70,mobile?58:145),
+      sx:1,sy:1,
+      tx:1,ty:1,
+      bursting:false,
+      nextStretch:performance.now()+rand(450,1000)
+    };
+
+    img.addEventListener('pointerdown',e=>e.stopPropagation());
+    img.addEventListener('click',e=>{
+      e.stopPropagation();
+      explodeRsvp(next);
+    });
+
+    stage.appendChild(img);
+    objects.push(next);
+    apply(next);
+  };
+}
+
 function explodeRsvp(o){
   if(o.bursting) return;
   o.bursting=true;
@@ -236,60 +281,19 @@ function explodeRsvp(o){
   const r=o.el.getBoundingClientRect();
   const cx=r.left+r.width/2;
   const cy=r.top+r.height/2;
+  const previousWidth=Math.max(1,r.width);
+  const previousSrc=o.spec.src;
 
-  // Exactly one POW per RSVP click.
+  // Remove exactly the RSVP that was clicked.
+  const idx=objects.indexOf(o);
+  if(idx>=0) objects.splice(idx,1);
+  o.el.remove();
+
+  // Exactly one new POW per click. Older RSVP-generated POWs stay on screen.
   spawnPowFromRsvp(cx,cy);
 
-  // Make the clicked RSVP pop away as one piece instead of cloning many fragments.
-  const oldVisibility=o.el.style.visibility;
-  o.el.animate([
-    {opacity:1,transform:`scale(${o.sx},${o.sy})`},
-    {opacity:0,transform:`scale(${o.sx*1.35},${o.sy*1.35})`}
-  ],{
-    duration:260,
-    easing:'cubic-bezier(.2,.8,.2,1)',
-    fill:'forwards'
-  });
-
-  // Replace it with a different, smaller RSVP.
-  const nextOptions=RSVP_POOL.filter(src=>src!==o.spec.src);
-  const nextSrc=pick(nextOptions.length?nextOptions:RSVP_POOL);
-  const currentRenderedW=Math.max(1,r.width);
-  const nextRenderedW=Math.max(window.innerWidth<=700?58:72,currentRenderedW*rand(.62,.78));
-
-  const probe=new Image();
-  probe.src=nextSrc;
-  probe.onload=()=>{
-    setTimeout(()=>{
-      o.spec.src=nextSrc;
-      o.el.src=nextSrc;
-      o.el.getAnimations().forEach(a=>a.cancel());
-
-      o.sx=1;
-      o.sy=1;
-      o.tx=1;
-      o.ty=1;
-      o.baseW=nextRenderedW;
-      o.baseH=nextRenderedW*(probe.naturalHeight/probe.naturalWidth);
-
-      const b=innerBounds();
-      o.x=clamp(cx-o.baseW/2,b.left,Math.max(b.left,b.right-o.baseW));
-      o.y=clamp(cy-o.baseH/2,b.top,Math.max(b.top,b.bottom-o.baseH));
-
-      o.el.style.visibility=oldVisibility;
-      o.el.style.opacity='';
-      o.bursting=false;
-      o.nextStretch=performance.now()+rand(450,1000);
-      apply(o);
-    },280);
-  };
-
-  probe.onerror=()=>{
-    o.el.getAnimations().forEach(a=>a.cancel());
-    o.el.style.visibility=oldVisibility;
-    o.el.style.opacity='';
-    o.bursting=false;
-  };
+  // Then create exactly one new, smaller RSVP for the next click.
+  spawnNextRsvp(cx,cy,previousWidth,previousSrc);
 }
 
 function makeObject(spec){

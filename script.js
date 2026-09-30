@@ -2,7 +2,8 @@ const stage=document.getElementById('stage');
 
 const DATE_POOL=['date.png','date-2.png','date3.png','date4.png','date5.png'];
 const LINEUP_POOL=['lineup.png','lineup-2.png','lineup3.png','lineup4.png'];
-const POW_POOL=['pow.png','small-pow.png','pow3.png','pow4.png'];
+const POW_POOL=['pow.png','small-pow.png','pow4.png'];
+const POW_RARE='pow3.png';
 const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsvp6.png','rsvp7.png'];
 
 const specs=[
@@ -27,7 +28,9 @@ const chosen=[
 ];
 
 const powCount=Math.random()<.5?2:3;
-shuffled(POW_POOL).slice(0,powCount).forEach((src,i)=>{
+const powCandidates=shuffled(POW_POOL);
+if(Math.random()<.22) powCandidates.splice(Math.floor(Math.random()*(powCandidates.length+1)),0,POW_RARE);
+powCandidates.slice(0,powCount).forEach((src,i)=>{
   const r=Math.random();
   const layer=r<.40?'back':(r<.75?'middle':'top');
   chosen.push({

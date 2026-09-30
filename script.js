@@ -284,28 +284,73 @@ function explodeRsvp(o){
   const previousWidth=Math.max(1,r.width);
   const previousSrc=o.spec.src;
 
-  // RSVP visibly bursts/pops first, then turns into one POW.
   const idx=objects.indexOf(o);
   if(idx>=0) objects.splice(idx,1);
 
+  // Freeze the clicked RSVP in screen space so the burst reads as an explosion,
+  // not as the normal DVD movement continuing underneath it.
+  o.el.style.position='fixed';
+  o.el.style.left=r.left+'px';
+  o.el.style.top=r.top+'px';
+  o.el.style.width=r.width+'px';
+  o.el.style.height=r.height+'px';
+  o.el.style.transform='none';
+  o.el.style.zIndex='90';
+  o.el.style.animation='none';
+
+  // Short radial flash made only from translucent white shards.
+  const shardCount=window.innerWidth<=700?12:18;
+  for(let i=0;i<shardCount;i++){
+    const shard=document.createElement('div');
+    shard.style.position='fixed';
+    shard.style.left=cx+'px';
+    shard.style.top=cy+'px';
+    shard.style.width=rand(3,8)+'px';
+    shard.style.height=rand(18,48)+'px';
+    shard.style.background='rgba(255,255,255,'+rand(.55,.95)+')';
+    shard.style.borderRadius='999px';
+    shard.style.pointerEvents='none';
+    shard.style.zIndex='91';
+    shard.style.transformOrigin='50% 100%';
+    document.body.appendChild(shard);
+
+    const angle=(Math.PI*2/shardCount)*i+rand(-.15,.15);
+    const dist=rand(Math.max(70,r.width*.45),Math.max(130,r.width*.95));
+    const dx=Math.cos(angle)*dist;
+    const dy=Math.sin(angle)*dist;
+    const rot=angle*180/Math.PI+90;
+
+    shard.animate([
+      {transform:`translate(-50%,-50%) rotate(${rot}deg) scaleY(.25)`,opacity:1},
+      {transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) rotate(${rot}deg) scaleY(1.35)`,opacity:0}
+    ],{
+      duration:rand(260,430),
+      easing:'cubic-bezier(.1,.75,.2,1)',
+      fill:'forwards'
+    }).finished.finally(()=>shard.remove());
+  }
+
+  // Violent squash -> snap expansion -> vanish at the same center point.
   const animation=o.el.animate([
-    {opacity:1,transform:`scale(${o.sx},${o.sy}) rotate(0deg)`,filter:'blur(0px)'},
-    {opacity:.9,transform:`scale(${o.sx*1.12},${o.sy*.82}) rotate(-3deg)`,filter:'blur(0px)'},
-    {opacity:.75,transform:`scale(${o.sx*.82},${o.sy*1.22}) rotate(4deg)`,filter:'blur(1px)'},
-    {opacity:0,transform:`scale(${o.sx*1.7},${o.sy*1.7}) rotate(10deg)`,filter:'blur(5px)'}
+    {opacity:1,transform:'translate(0,0) scale(1,1) rotate(0deg)',filter:'brightness(1) blur(0px)'},
+    {offset:.18,opacity:1,transform:'translate(0,0) scale(.72,1.38) rotate(-4deg)',filter:'brightness(1.25) blur(0px)'},
+    {offset:.34,opacity:1,transform:'translate(0,0) scale(1.42,.66) rotate(5deg)',filter:'brightness(1.65) blur(0px)'},
+    {offset:.50,opacity:1,transform:'translate(0,0) scale(.82,1.18) rotate(-2deg)',filter:'brightness(2.1) blur(0px)'},
+    {offset:.68,opacity:.95,transform:'translate(0,0) scale(1.75,1.75) rotate(2deg)',filter:'brightness(2.6) blur(1px)'},
+    {opacity:0,transform:'translate(0,0) scale(2.65,2.65) rotate(7deg)',filter:'brightness(3.2) blur(7px)'}
   ],{
-    duration:360,
-    easing:'cubic-bezier(.18,.8,.2,1)',
+    duration:390,
+    easing:'cubic-bezier(.12,.8,.16,1)',
     fill:'forwards'
   });
 
   animation.finished.finally(()=>{
     o.el.remove();
 
-    // Exactly one new POW per click. Older RSVP-generated POWs stay on screen.
+    // One POW only, after the explosion completes.
     spawnPowFromRsvp(cx,cy);
 
-    // Then create exactly one new, smaller RSVP for the next click.
+    // One new smaller RSVP for the next click.
     spawnNextRsvp(cx,cy,previousWidth,previousSrc);
   });
 }

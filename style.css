@@ -64,7 +64,7 @@ main{width:min(1100px,calc(100vw - 150px));min-height:1700px;margin:0 auto;paddi
 html{background:#929292}
 body{
  background-color:#929292!important;
- background-image:url("back-ground.png")!important;
+ background-image:url("frame.svg")!important;
  background-position:center center!important;
  background-size:100vw 100vh!important;
  background-repeat:no-repeat!important;

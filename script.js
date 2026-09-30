@@ -172,6 +172,7 @@ function spawnPowFromRsvp(cx,cy){
   img.alt='pow';
   img.className='poster-object pow layer-top';
   img.draggable=false;
+  img.style.transformOrigin='50% 50%';
 
   img.onload=()=>{
     const b=innerBounds();
@@ -212,6 +213,11 @@ function spawnPowFromRsvp(cx,cy){
       const eased=1-Math.pow(1-t,3);
       o.sx=.18+(.82*eased);
       o.sy=.18+(.82*eased);
+
+      // Re-center every frame so it grows outward from the middle.
+      o.x=clamp(cx-o.baseW/2,b.left,Math.max(b.left,b.right-o.baseW));
+      o.y=clamp(cy-o.baseH/2,b.top,Math.max(b.top,b.bottom-o.baseH));
+
       apply(o);
       if(t<1) requestAnimationFrame(pop);
     };

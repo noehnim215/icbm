@@ -25,6 +25,12 @@ shuffled(POW_POOL).slice(0,powCount).forEach((src,i)=>{
   chosen.push({id:'pow-'+i,src,kind:'pow',min:100,max:.48,stretch:true});
 });
 
+// Sometimes one date / lineup / POW starts nearly full-screen.
+if(Math.random()<.38){
+  const candidates=chosen.filter(x=>x.kind==='date'||x.kind==='lineup'||x.kind==='pow');
+  pick(candidates).heroHuge=true;
+}
+
 const objects=[];
 let idle=false;
 let idleTimer=null;
@@ -46,9 +52,18 @@ function innerBounds(){
 
 function randomWidth(spec,naturalW,naturalH){
   const b=innerBounds();
-  const maxByViewport=Math.max(spec.min,Math.min(b.width*(typeof spec.max==='number'?spec.max:.7),b.height*(naturalW/naturalH)*.9));
+  const aspect=naturalW/naturalH;
+
+  if(spec.heroHuge){
+    const full=Math.min(b.width*.97,b.height*aspect*.97);
+    return Math.max(spec.min,full*rand(.88,1));
+  }
+
+  const maxByViewport=Math.max(spec.min,Math.min(
+    b.width*(typeof spec.max==='number'?spec.max:.7),
+    b.height*aspect*.9
+  ));
   const minW=Math.min(spec.min,maxByViewport);
-  // log-ish spread: sometimes tiny, sometimes huge
   const t=Math.random()**1.15;
   return minW+(maxByViewport-minW)*t;
 }
@@ -78,17 +93,17 @@ function makeObject(spec){
     img.onload=()=>{
       const baseW=randomWidth(spec,img.naturalWidth,img.naturalHeight);
       const baseH=baseW*(img.naturalHeight/img.naturalWidth);
-      const speed=rand(75,155);
-      const angle=rand(0,Math.PI*2);
+      const vx=(Math.random()<.5?-1:1)*rand(70,145);
+      const vy=(Math.random()<.5?-1:1)*rand(70,145);
       const o={
         spec,el:img,
         baseW,baseH,
         x:0,y:0,
-        vx:Math.cos(angle)*speed,
-        vy:Math.sin(angle)*speed,
+        vx,vy,
         sx:1,sy:1,
         tx:1,ty:1,
         hovered:false,
+        pinned:false,
         nextStretch:performance.now()+rand(550,1500)
       };
       stage.appendChild(img);
@@ -104,6 +119,14 @@ function makeObject(spec){
         img.classList.remove('is-hovered');
       });
 
+      img.addEventListener('click',e=>{
+        e.stopPropagation();
+        o.pinned=true;
+        o.tx=o.sx;
+        o.ty=o.sy;
+        img.classList.add('is-pinned');
+      });
+
       objects.push(o);
       resolve();
     };
@@ -116,10 +139,17 @@ function chooseStretch(o,now){
     o.tx=1;
     o.ty=1;
   }else{
-    const maxSx=Math.max(.45,Math.min(1.7,b.width/o.baseW));
-    const maxSy=Math.max(.45,Math.min(1.7,b.height/o.baseH));
-    o.tx=rand(.52,maxSx);
-    o.ty=rand(.52,maxSy);
+    const maxSx=Math.max(.45,Math.min(1.85,b.width/o.baseW));
+    const maxSy=Math.max(.45,Math.min(1.85,b.height/o.baseH));
+
+    const canHero=o.spec.kind==='date'||o.spec.kind==='lineup'||o.spec.kind==='pow';
+    if(canHero && Math.random()<.09){
+      o.tx=Math.max(.55,maxSx*rand(.9,1));
+      o.ty=Math.max(.55,maxSy*rand(.9,1));
+    }else{
+      o.tx=rand(.52,maxSx);
+      o.ty=rand(.52,maxSy);
+    }
   }
   o.nextStretch=now+rand(600,1500);
 }
@@ -143,7 +173,7 @@ function tick(now){
 
   if(idle){
     for(const o of objects){
-      if(o.hovered) continue;
+      if(o.hovered || o.pinned) continue;
 
       if(now>=o.nextStretch) chooseStretch(o,now);
 
@@ -171,23 +201,12 @@ function armIdle(){
   },5000);
 }
 
-function resetScene(){
-  idle=false;
-  clearTimeout(idleTimer);
-  for(const o of objects){
-    o.sx=1;o.sy=1;o.tx=1;o.ty=1;
-    placeRandom(o);
-    apply(o);
-  }
-  armIdle();
-}
-
 // Before DVD mode: movement keeps delaying the 5-second timer.
 // During DVD mode: movement is allowed so hover can pause individual objects.
 addEventListener('mousemove',()=>{ if(!idle) armIdle(); },{passive:true});
 addEventListener('touchmove',()=>{ if(!idle) armIdle(); },{passive:true});
-addEventListener('pointerdown',resetScene,{passive:true});
-addEventListener('keydown',resetScene);
+addEventListener('pointerdown',()=>{ if(!idle) armIdle(); },{passive:true});
+addEventListener('keydown',()=>{ if(!idle) armIdle(); });
 
 addEventListener('resize',()=>{
   buildMarbleBorder();

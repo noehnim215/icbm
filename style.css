@@ -86,3 +86,21 @@ body{
 .poster-object.lineup{z-index:10!important}
 .poster-object.icbm{z-index:12!important}
 .poster-object.boiler{z-index:13!important}
+
+.marble-chaos-layer{
+  position:fixed;
+  inset:0;
+  z-index:31;
+  pointer-events:none;
+  overflow:hidden;
+}
+.marble-chaos-ball{
+  position:absolute;
+  display:block;
+  object-fit:contain;
+  margin:0;
+  padding:0;
+  max-width:none;
+  pointer-events:none;
+  will-change:left,top;
+}

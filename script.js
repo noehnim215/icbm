@@ -6,7 +6,7 @@ const POW_POOL=['pow.png','small-pow.png','pow3.png','pow4.png'];
 const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsvp6.png','rsvp7.png'];
 
 const specs=[
-  {id:'icbm',src:'icbm.png',kind:'icbm',always:true,min:320,max:.72,stretch:false,mediumLarge:true},
+  {id:'icbm',src:'icbm.png',kind:'icbm',always:true,min:380,max:.88,stretch:false,mediumLarge:true},
   {id:'boiler',src:'logo-boiler.png',kind:'boiler',always:true,min:90,max:.42,stretch:true}
 ];
 
@@ -14,6 +14,10 @@ function rand(min,max){return min+Math.random()*(max-min)}
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
 function shuffled(arr){return [...arr].sort(()=>Math.random()-.5)}
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+
+const icbmLayerRoll=Math.random();
+const icbmLayer=icbmLayerRoll<.69?'top3':(icbmLayerRoll<.845?'top2':'top1');
+specs[0].layer=icbmLayer;
 
 const chosen=[
   ...specs,
@@ -75,9 +79,12 @@ function randomWidth(spec,naturalW,naturalH){
   const aspect=naturalW/naturalH;
 
   if(spec.mediumLarge){
-    const minW=Math.min(b.width*.38,Math.max(240,spec.min));
-    const maxW=Math.min(b.width*.68,b.height*aspect*.72);
-    return rand(Math.min(minW,maxW),Math.max(minW,maxW));
+    const minW=Math.min(b.width*.46,Math.max(300,spec.min));
+    const maxW=Math.min(b.width*.86,b.height*aspect*.86);
+    const lo=Math.min(minW,maxW);
+    const hi=Math.max(minW,maxW);
+    const t=Math.pow(Math.random(),0.55); // bias strongly toward larger sizes
+    return lo+(hi-lo)*t;
   }
 
   if(spec.heroHuge){

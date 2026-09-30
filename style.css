@@ -5,23 +5,11 @@ body{
   overflow:auto;
   background:#929292;
 }
-body::before{
-  content:"";
-  position:absolute;
-  left:50%;
-  top:0;
-  transform:translateX(-50%);
-  width:1200px;
-  height:1500px;
-  background:url("back-ground1.png") top center/1200px 1500px no-repeat;
-  z-index:0;
-  pointer-events:none;
-}
 .marbles{display:none!important}
 main{
   position:relative;
   z-index:1;
-  width:1200px;
+  width:min(1200px,calc(100vw - 108px));
   height:1500px;
   min-height:1500px;
   margin:0 auto;
@@ -122,7 +110,7 @@ body.edit-mode .resize-handle.active{display:block}
 }
 /* REAL MARBLE BORDER: red -> green -> blue -> orange, no gaps */
 .marble-frame{
-  position:absolute;
+  position:fixed;
   inset:0;
   z-index:50;
   pointer-events:none;

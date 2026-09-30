@@ -163,6 +163,8 @@ function apply(o){
   o.el.style.transform='scale('+o.sx+','+o.sy+')';
 }
 
+let activeRsvpPow=null;
+
 function spawnPowFromRsvp(cx,cy){
   const src=Math.random()<.37
     ? pick(RSVP_POW_POOL)
@@ -174,6 +176,13 @@ function spawnPowFromRsvp(cx,cy){
   img.draggable=false;
 
   img.onload=()=>{
+    if(activeRsvpPow){
+      const idx=objects.indexOf(activeRsvpPow);
+      if(idx>=0) objects.splice(idx,1);
+      activeRsvpPow.el.remove();
+      activeRsvpPow=null;
+    }
+
     const b=innerBounds();
     const aspect=img.naturalWidth/img.naturalHeight;
     const fitW=Math.min(b.width*.9,b.height*aspect*.9);
@@ -204,6 +213,7 @@ function spawnPowFromRsvp(cx,cy){
 
     stage.appendChild(img);
     objects.push(o);
+    activeRsvpPow=o;
     apply(o);
 
     const start=performance.now();

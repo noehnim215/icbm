@@ -120,3 +120,44 @@ body.edit-mode .resize-handle.active{display:block}
  .editor-toggle{right:10px;top:10px}
  .editor-panel{right:10px;top:58px;width:210px}
 }
+/* REAL MARBLE BORDER: red -> green -> blue -> orange, no gaps */
+.marble-frame{
+  position:absolute;
+  inset:0;
+  z-index:50;
+  pointer-events:none;
+}
+.marble-edge{
+  position:absolute;
+  display:flex;
+  gap:0;
+  overflow:hidden;
+  pointer-events:none;
+}
+.marble-top,.marble-bottom{
+  left:0;
+  width:100%;
+  height:54px;
+  flex-direction:row;
+}
+.marble-top{top:0}
+.marble-bottom{bottom:0}
+.marble-left,.marble-right{
+  top:54px;
+  bottom:54px;
+  width:54px;
+  flex-direction:column;
+}
+.marble-left{left:0}
+.marble-right{right:0}
+.marble-edge img{
+  width:54px;
+  height:54px;
+  flex:0 0 54px;
+  display:block;
+  object-fit:contain;
+  margin:0;
+  padding:0;
+  position:static;
+  max-width:none;
+}

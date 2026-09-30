@@ -148,7 +148,7 @@ function buildMarbleBorder(){
   const size=54;
   document.querySelectorAll('.marble-edge').forEach(edge=>{
     const horizontal=edge.classList.contains('marble-top')||edge.classList.contains('marble-bottom');
-    const length=horizontal?1200:(1500-size*2);
+    const length=horizontal?window.innerWidth:(window.innerHeight-size*2);
     const count=Math.ceil(length/size)+1;
     edge.replaceChildren(...Array.from({length:count},(_,i)=>{
       const img=document.createElement('img');
@@ -160,3 +160,4 @@ function buildMarbleBorder(){
   });
 }
 buildMarbleBorder();
+addEventListener('resize',buildMarbleBorder);

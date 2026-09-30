@@ -14,7 +14,7 @@ main{
   min-height:1500px;
   margin:0 auto;
   padding:0;
-  overflow:hidden;
+  overflow:visible;
 }
 main img{position:absolute;display:block;height:auto;margin:0;max-width:none}
 .title-art{
@@ -156,7 +156,16 @@ body::before,body::after,main::before,main::after{content:none!important;display
 .marble-top,.marble-bottom{left:0!important;right:0!important;width:100vw!important}
 .marble-left,.marble-right{top:var(--edge-size,54px)!important;bottom:var(--edge-size,54px)!important}
 .marble-edge{gap:0!important;padding:0!important;margin:0!important;line-height:0!important;overflow:hidden!important}
-.marble-edge img{position:absolute!important;display:block!important;margin:0!important;padding:0!important;max-width:none!important;object-fit:contain!important}
+.marble-edge img{
+  position:absolute!important;
+  display:block!important;
+  margin:0!important;
+  padding:0!important;
+  max-width:none!important;
+  object-fit:contain!important;
+  transform:scale(.9)!important;
+  transform-origin:center center!important;
+}
 
 /* 10s idle DVD screensaver */
 .idle-layer{

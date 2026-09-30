@@ -157,3 +157,23 @@ body::before,body::after,main::before,main::after{content:none!important;display
 .marble-left,.marble-right{top:var(--edge-size,54px)!important;bottom:var(--edge-size,54px)!important}
 .marble-edge{gap:0!important;padding:0!important;margin:0!important;line-height:0!important;overflow:hidden!important}
 .marble-edge img{position:absolute!important;display:block!important;margin:0!important;padding:0!important;max-width:none!important;object-fit:contain!important}
+
+/* 10s idle DVD screensaver */
+.idle-layer{
+  position:fixed;
+  inset:0;
+  z-index:40;
+  pointer-events:none;
+  overflow:hidden;
+}
+.idle-clone{
+  position:absolute!important;
+  display:block!important;
+  max-width:none!important;
+  margin:0!important;
+  pointer-events:none!important;
+  will-change:left,top,transform;
+}
+body.idle-active main > img.editor-item{
+  visibility:hidden!important;
+}

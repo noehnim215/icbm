@@ -142,22 +142,156 @@ panel.querySelector('.copy-css').addEventListener('click',async()=>{
 addEventListener('resize',updateHandle);
 
 
-// Build marble border using actual PNGs, no spacing.
+// Build an exact-fit marble border: red -> green -> blue -> orange.
 function buildMarbleBorder(){
   const order=['red-circle.png','green-circle.png','blue-circle.png','orange-circle.png'];
-  const size=54;
-  document.querySelectorAll('.marble-edge').forEach(edge=>{
-    const horizontal=edge.classList.contains('marble-top')||edge.classList.contains('marble-bottom');
-    const length=horizontal?window.innerWidth:(window.innerHeight-size*2);
-    const count=Math.ceil(length/size)+1;
-    edge.replaceChildren(...Array.from({length:count},(_,i)=>{
-      const img=document.createElement('img');
-      img.src=order[i%order.length];
-      img.alt='';
-      img.draggable=false;
-      return img;
-    }));
-  });
+  const target=54;
+  const vw=window.innerWidth;
+  const vh=window.innerHeight;
+
+  const horizontalCount=Math.max(4,Math.ceil(vw/target/4)*4);
+  const edgeSize=vw/horizontalCount;
+  document.documentElement.style.setProperty('--edge-size',edgeSize+'px');
+
+  const verticalAvailable=Math.max(0,vh-edgeSize*2);
+  const verticalCount=Math.max(4,Math.ceil(verticalAvailable/edgeSize/4)*4);
+  const verticalStep=verticalCount?verticalAvailable/verticalCount:edgeSize;
+
+  const make=(src,left,top,w,h)=>{
+    const img=document.createElement('img');
+    img.src=src; img.alt=''; img.draggable=false;
+    img.style.left=left+'px'; img.style.top=top+'px';
+    img.style.width=w+'px'; img.style.height=h+'px';
+    return img;
+  };
+
+  const top=document.querySelector('.marble-top');
+  const bottom=document.querySelector('.marble-bottom');
+  const left=document.querySelector('.marble-left');
+  const right=document.querySelector('.marble-right');
+  [top,bottom,left,right].forEach(edge=>edge.replaceChildren());
+
+  top.style.height=edgeSize+'px';
+  bottom.style.height=edgeSize+'px';
+  left.style.width=edgeSize+'px';
+  right.style.width=edgeSize+'px';
+
+  for(let i=0;i<horizontalCount;i++){
+    const x=i*edgeSize;
+    top.appendChild(make(order[i%4],x,0,edgeSize,edgeSize));
+    bottom.appendChild(make(order[i%4],x,0,edgeSize,edgeSize));
+  }
+  for(let i=0;i<verticalCount;i++){
+    const y=i*verticalStep;
+    left.appendChild(make(order[i%4],0,y,edgeSize,verticalStep));
+    right.appendChild(make(order[i%4],0,y,edgeSize,verticalStep));
+  }
 }
 buildMarbleBorder();
-addEventListener('resize',buildMarbleBorder);
+let borderResizeTimer;
+addEventListener('resize',()=>{
+  clearTimeout(borderResizeTimer);
+  borderResizeTimer=setTimeout(buildMarbleBorder,60);
+});
+
+// 10-second idle DVD-style screensaver.
+const idleDelay=10000;
+let idleTimer=null;
+let idleActive=false;
+let idleRaf=null;
+let idleLast=0;
+let idleObjects=[];
+
+const idleLayer=document.createElement('div');
+idleLayer.className='idle-layer';
+document.body.appendChild(idleLayer);
+
+function rand(min,max){return min+Math.random()*(max-min)}
+
+function startIdle(){
+  if(idleActive || document.body.classList.contains('edit-mode')) return;
+  idleActive=true;
+  document.body.classList.add('idle-active');
+  idleLayer.replaceChildren();
+  idleObjects=[];
+
+  items.forEach((item,index)=>{
+    const src=item.el;
+    const r=src.getBoundingClientRect();
+    const clone=src.cloneNode(true);
+    clone.classList.remove('editor-item','selected');
+    clone.classList.add('idle-clone');
+    clone.style.width=r.width+'px';
+    clone.style.height=r.height+'px';
+    clone.style.left=r.left+'px';
+    clone.style.top=r.top+'px';
+    clone.style.transformOrigin='center center';
+    idleLayer.appendChild(clone);
+
+    const speed=rand(85,150);
+    const angle=rand(0,Math.PI*2);
+    const stretchable=!src.classList.contains('title-art');
+    idleObjects.push({
+      el:clone,
+      x:r.left,y:r.top,w:r.width,h:r.height,
+      vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
+      sx:1,sy:1,tx:stretchable?rand(.55,1.55):1,ty:stretchable?rand(.55,1.55):1,
+      stretchable,
+      nextStretch:performance.now()+rand(700,1800)
+    });
+  });
+
+  idleLast=performance.now();
+  idleRaf=requestAnimationFrame(tickIdle);
+}
+
+function tickIdle(now){
+  if(!idleActive)return;
+  const dt=Math.min(.04,(now-idleLast)/1000||0);
+  idleLast=now;
+  const vw=window.innerWidth, vh=window.innerHeight;
+
+  idleObjects.forEach(o=>{
+    if(o.stretchable && now>=o.nextStretch){
+      o.tx=rand(.5,1.65);
+      o.ty=rand(.5,1.65);
+      o.nextStretch=now+rand(700,1800);
+    }
+    const ease=Math.min(1,dt*3.4);
+    o.sx+= (o.tx-o.sx)*ease;
+    o.sy+= (o.ty-o.sy)*ease;
+
+    const rw=o.w*o.sx, rh=o.h*o.sy;
+    o.x+=o.vx*dt; o.y+=o.vy*dt;
+
+    if(o.x<=0){o.x=0;o.vx=Math.abs(o.vx)}
+    if(o.y<=0){o.y=0;o.vy=Math.abs(o.vy)}
+    if(o.x+rw>=vw){o.x=Math.max(0,vw-rw);o.vx=-Math.abs(o.vx)}
+    if(o.y+rh>=vh){o.y=Math.max(0,vh-rh);o.vy=-Math.abs(o.vy)}
+
+    o.el.style.left=o.x+'px';
+    o.el.style.top=o.y+'px';
+    o.el.style.transform='scale('+o.sx+','+o.sy+')';
+  });
+
+  idleRaf=requestAnimationFrame(tickIdle);
+}
+
+function stopIdle(){
+  if(!idleActive)return;
+  idleActive=false;
+  document.body.classList.remove('idle-active');
+  cancelAnimationFrame(idleRaf);
+  idleLayer.replaceChildren();
+  idleObjects=[];
+}
+
+function armIdle(){
+  stopIdle();
+  clearTimeout(idleTimer);
+  idleTimer=setTimeout(startIdle,idleDelay);
+}
+['mousemove','pointerdown','keydown','wheel','touchstart'].forEach(evt=>{
+  addEventListener(evt,armIdle,{passive:true});
+});
+armIdle();

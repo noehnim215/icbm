@@ -148,3 +148,9 @@ body{
   user-select:none!important;
   -webkit-user-drag:none!important;
 }
+
+/* 10% composition: POW definitely behind, date/lineup definitely below ICBM */
+body.composition-powHugeBack_textTiny .poster-object.pow{z-index:2!important}
+body.composition-powHugeBack_textTiny .poster-object.date,
+body.composition-powHugeBack_textTiny .poster-object.lineup{z-index:10!important}
+body.composition-powHugeBack_textTiny .poster-object.icbm{z-index:28!important}

@@ -30,9 +30,7 @@ body{
   will-change:left,top,transform;
   z-index:10;
 }
-.poster-object.is-hovered{
-  cursor:pointer;
-}
+.poster-object{cursor:pointer}
 .marble-frame{
   position:fixed;
   inset:0;
@@ -80,8 +78,10 @@ body{
   .marble-edge img{transform:scale(.82)!important}
 }
 
-/* Layer order: POW stays behind the main typography/logos */
-.poster-object.pow{z-index:4!important}
+/* Layer order */
+.poster-object.pow.layer-back{z-index:2!important}
+.poster-object.pow.layer-middle{z-index:9!important}
+.poster-object.pow.layer-top{z-index:18!important}
 .poster-object.date,
 .poster-object.lineup{z-index:10!important}
 .poster-object.icbm{z-index:12!important}

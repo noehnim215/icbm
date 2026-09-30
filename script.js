@@ -140,6 +140,15 @@ function makeObject(spec){
     img.onload=()=>{
       const baseW=randomWidth(spec,img.naturalWidth,img.naturalHeight);
       const baseH=baseW*(img.naturalHeight/img.naturalWidth);
+
+      // Oversized POW graphics should never sit on the very top layer.
+      if(spec.kind==='pow' && spec.layer==='top'){
+        const b=innerBounds();
+        const hugeThreshold=b.width*.62;
+        if(baseW>=hugeThreshold || spec.heroHuge){
+          spec.layer=Math.random()<.6?'back':'middle';
+        }
+      }
       const mobile=window.innerWidth<=700;
       const vx=(Math.random()<.5?-1:1)*rand(mobile?24:70,mobile?58:145);
       const vy=(spec.kind==='pow'?1:(Math.random()<.5?-1:1))*rand(mobile?24:70,mobile?58:145);
@@ -164,6 +173,15 @@ function makeObject(spec){
 
 function chooseStretch(o,now){
   const b=innerBounds();
+
+  if(o.spec.kind==='pow' && o.spec.layer==='top'){
+    const currentW=o.baseW*o.sx;
+    if(currentW>=b.width*.62){
+      o.spec.layer=Math.random()<.6?'back':'middle';
+      o.el.classList.remove('layer-top');
+      o.el.classList.add('layer-'+o.spec.layer);
+    }
+  }
   if(!o.spec.stretch){
     o.tx=1;
     o.ty=1;

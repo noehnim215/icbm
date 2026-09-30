@@ -133,6 +133,62 @@ function apply(o){
   o.el.style.transform='scale('+o.sx+','+o.sy+')';
 }
 
+function explodeRsvp(o){
+  if(o.bursting) return;
+  o.bursting=true;
+
+  const r=o.el.getBoundingClientRect();
+  const cx=r.left+r.width/2;
+  const cy=r.top+r.height/2;
+  const count=window.innerWidth<=700?9:14;
+
+  o.el.style.visibility='hidden';
+
+  for(let i=0;i<count;i++){
+    const p=o.el.cloneNode(true);
+    p.className='rsvp-burst-particle';
+    p.style.position='fixed';
+    p.style.left=cx+'px';
+    p.style.top=cy+'px';
+    p.style.width=Math.max(34,r.width*rand(.12,.24))+'px';
+    p.style.height='auto';
+    p.style.margin='0';
+    p.style.zIndex='80';
+    p.style.pointerEvents='none';
+    p.style.transform='translate(-50%,-50%)';
+    p.style.visibility='visible';
+    p.style.animation='none';
+    document.body.appendChild(p);
+
+    const angle=(Math.PI*2/count)*i+rand(-.28,.28);
+    const distance=rand(Math.max(70,r.width*.35),Math.max(150,r.width*.9));
+    const dx=Math.cos(angle)*distance;
+    const dy=Math.sin(angle)*distance;
+    const rot=rand(-420,420);
+
+    p.animate([
+      {transform:'translate(-50%,-50%) scale(1) rotate(0deg)',opacity:1},
+      {transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(${rand(.35,.85)}) rotate(${rot}deg)`,opacity:0}
+    ],{
+      duration:rand(420,760),
+      easing:'cubic-bezier(.18,.7,.2,1)',
+      fill:'forwards'
+    }).finished.finally(()=>p.remove());
+  }
+
+  const ring=document.createElement('div');
+  ring.className='rsvp-burst-ring';
+  ring.style.left=cx+'px';
+  ring.style.top=cy+'px';
+  document.body.appendChild(ring);
+  ring.addEventListener('animationend',()=>ring.remove(),{once:true});
+
+  setTimeout(()=>{
+    o.el.style.visibility='';
+    o.bursting=false;
+  },620);
+}
+
 function makeObject(spec){
   return new Promise(resolve=>{
     const img=new Image();
@@ -162,11 +218,17 @@ function makeObject(spec){
         vx,vy,
         sx:1,sy:1,
         tx:1,ty:1,
+        bursting:false,
         nextStretch:performance.now()+rand(550,1500)
       };
       stage.appendChild(img);
       placeRandom(o);
       apply(o);
+
+      if(spec.kind==='rsvp'){
+        img.addEventListener('pointerenter',()=>explodeRsvp(o));
+        img.addEventListener('click',()=>explodeRsvp(o));
+      }
 
       objects.push(o);
       resolve();
@@ -251,25 +313,18 @@ function tick(now){
 }
 
 function armIdle(){
-  if(idle || globallyPaused) return; // once DVD mode starts, mouse movement does not cancel it
+  if(idle || globallyPaused) return;
   clearTimeout(idleTimer);
   idleTimer=setTimeout(()=>{
     idle=true;
     const now=performance.now();
     objects.forEach(o=>chooseStretch(o,now));
-  },1400);
+  },1000);
 }
-
-// Before DVD mode: movement keeps delaying the 5-second timer.
-// During DVD mode: movement is allowed so hover can pause individual objects.
-addEventListener('mousemove',()=>{ if(!idle && !globallyPaused) armIdle(); },{passive:true});
-addEventListener('touchmove',()=>{ if(!idle && !globallyPaused) armIdle(); },{passive:true});
 addEventListener('pointerdown',e=>{
   globallyPaused=!globallyPaused;
   document.body.classList.toggle('all-paused',globallyPaused);
 
-  // If DVD mode has not started yet, clicking only toggles the global pause state.
-  // When unpaused before idle begins, keep the 5-second timer running.
   if(!idle && !globallyPaused) armIdle();
 },{passive:true});
 

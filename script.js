@@ -256,10 +256,40 @@ function explodeRsvp(o){
 
   spawnPowFromRsvp(cx,cy);
 
-  setTimeout(()=>{
+  // Replace the clicked RSVP with a different, smaller RSVP.
+  const nextOptions=RSVP_POOL.filter(src=>src!==o.spec.src);
+  const nextSrc=pick(nextOptions.length?nextOptions:RSVP_POOL);
+  const currentRenderedW=Math.max(1,r.width);
+  const nextRenderedW=Math.max(window.innerWidth<=700?58:72,currentRenderedW*rand(.62,.78));
+
+  const probe=new Image();
+  probe.src=nextSrc;
+  probe.onload=()=>{
+    o.spec.src=nextSrc;
+    o.el.src=nextSrc;
+
+    // Reset distortion, then rebuild the new RSVP around the same center.
+    o.sx=1;
+    o.sy=1;
+    o.tx=1;
+    o.ty=1;
+    o.baseW=nextRenderedW;
+    o.baseH=nextRenderedW*(probe.naturalHeight/probe.naturalWidth);
+
+    const b=innerBounds();
+    o.x=clamp(cx-o.baseW/2,b.left,Math.max(b.left,b.right-o.baseW));
+    o.y=clamp(cy-o.baseH/2,b.top,Math.max(b.top,b.bottom-o.baseH));
+
     o.el.style.visibility='';
     o.bursting=false;
-  },620);
+    o.nextStretch=performance.now()+rand(450,1000);
+    apply(o);
+  };
+
+  probe.onerror=()=>{
+    o.el.style.visibility='';
+    o.bursting=false;
+  };
 }
 
 function makeObject(spec){

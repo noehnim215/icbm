@@ -5,6 +5,7 @@ const LINEUP_POOL=['lineup.png','lineup-2.png','lineup3.png','lineup4.png'];
 const POW_POOL=['pow.png','small-pow.png','pow4.png','pow5.png'];
 const POW_RARE='pow3.png';
 const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsvp6.png','rsvp7.png'];
+const RSVP_POW_POOL=['pow-for-rsvp.png','pow-for-rsvp2.png'];
 
 const specs=[
   {id:'icbm',src:'icbm.png',kind:'icbm',always:true,min:380,max:.88,stretch:false,mediumLarge:true},
@@ -134,7 +135,9 @@ function apply(o){
 }
 
 function spawnPowFromRsvp(cx,cy){
-  const src=pick([...POW_POOL,POW_RARE]);
+  const src=Math.random()<.80
+    ? pick(RSVP_POW_POOL)
+    : pick([...POW_POOL,POW_RARE]);
   const img=new Image();
   img.src=src;
   img.alt='pow';

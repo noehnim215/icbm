@@ -226,45 +226,22 @@ function explodeRsvp(o){
   const r=o.el.getBoundingClientRect();
   const cx=r.left+r.width/2;
   const cy=r.top+r.height/2;
-  const count=window.innerWidth<=700?9:14;
 
-  o.el.style.visibility='hidden';
-
-  for(let i=0;i<count;i++){
-    const p=o.el.cloneNode(true);
-    p.className='rsvp-burst-particle';
-    p.style.position='fixed';
-    p.style.left=cx+'px';
-    p.style.top=cy+'px';
-    p.style.width=Math.max(34,r.width*rand(.12,.24))+'px';
-    p.style.height='auto';
-    p.style.margin='0';
-    p.style.zIndex='80';
-    p.style.pointerEvents='none';
-    p.style.transform='translate(-50%,-50%)';
-    p.style.visibility='visible';
-    p.style.animation='none';
-    document.body.appendChild(p);
-
-    const angle=(Math.PI*2/count)*i+rand(-.28,.28);
-    const distance=rand(Math.max(70,r.width*.35),Math.max(150,r.width*.9));
-    const dx=Math.cos(angle)*distance;
-    const dy=Math.sin(angle)*distance;
-    const rot=rand(-420,420);
-
-    p.animate([
-      {transform:'translate(-50%,-50%) scale(1) rotate(0deg)',opacity:1},
-      {transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(${rand(.35,.85)}) rotate(${rot}deg)`,opacity:0}
-    ],{
-      duration:rand(420,760),
-      easing:'cubic-bezier(.18,.7,.2,1)',
-      fill:'forwards'
-    }).finished.finally(()=>p.remove());
-  }
-
+  // Exactly one POW per RSVP click.
   spawnPowFromRsvp(cx,cy);
 
-  // Replace the clicked RSVP with a different, smaller RSVP.
+  // Make the clicked RSVP pop away as one piece instead of cloning many fragments.
+  const oldVisibility=o.el.style.visibility;
+  o.el.animate([
+    {opacity:1,transform:`scale(${o.sx},${o.sy})`},
+    {opacity:0,transform:`scale(${o.sx*1.35},${o.sy*1.35})`}
+  ],{
+    duration:260,
+    easing:'cubic-bezier(.2,.8,.2,1)',
+    fill:'forwards'
+  });
+
+  // Replace it with a different, smaller RSVP.
   const nextOptions=RSVP_POOL.filter(src=>src!==o.spec.src);
   const nextSrc=pick(nextOptions.length?nextOptions:RSVP_POOL);
   const currentRenderedW=Math.max(1,r.width);
@@ -273,29 +250,34 @@ function explodeRsvp(o){
   const probe=new Image();
   probe.src=nextSrc;
   probe.onload=()=>{
-    o.spec.src=nextSrc;
-    o.el.src=nextSrc;
+    setTimeout(()=>{
+      o.spec.src=nextSrc;
+      o.el.src=nextSrc;
+      o.el.getAnimations().forEach(a=>a.cancel());
 
-    // Reset distortion, then rebuild the new RSVP around the same center.
-    o.sx=1;
-    o.sy=1;
-    o.tx=1;
-    o.ty=1;
-    o.baseW=nextRenderedW;
-    o.baseH=nextRenderedW*(probe.naturalHeight/probe.naturalWidth);
+      o.sx=1;
+      o.sy=1;
+      o.tx=1;
+      o.ty=1;
+      o.baseW=nextRenderedW;
+      o.baseH=nextRenderedW*(probe.naturalHeight/probe.naturalWidth);
 
-    const b=innerBounds();
-    o.x=clamp(cx-o.baseW/2,b.left,Math.max(b.left,b.right-o.baseW));
-    o.y=clamp(cy-o.baseH/2,b.top,Math.max(b.top,b.bottom-o.baseH));
+      const b=innerBounds();
+      o.x=clamp(cx-o.baseW/2,b.left,Math.max(b.left,b.right-o.baseW));
+      o.y=clamp(cy-o.baseH/2,b.top,Math.max(b.top,b.bottom-o.baseH));
 
-    o.el.style.visibility='';
-    o.bursting=false;
-    o.nextStretch=performance.now()+rand(450,1000);
-    apply(o);
+      o.el.style.visibility=oldVisibility;
+      o.el.style.opacity='';
+      o.bursting=false;
+      o.nextStretch=performance.now()+rand(450,1000);
+      apply(o);
+    },280);
   };
 
   probe.onerror=()=>{
-    o.el.style.visibility='';
+    o.el.getAnimations().forEach(a=>a.cancel());
+    o.el.style.visibility=oldVisibility;
+    o.el.style.opacity='';
     o.bursting=false;
   };
 }

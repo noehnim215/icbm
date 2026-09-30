@@ -5,7 +5,7 @@ const LINEUP_POOL=['lineup.png','lineup-2.png','lineup3.png','lineup4.png'];
 const POW_POOL=['pow.png','small-pow.png','pow3.png','pow4.png'];
 
 const specs=[
-  {id:'icbm',src:'icbm.png',kind:'icbm',always:true,min:150,max:.82,stretch:false},
+  {id:'icbm',src:'icbm.png',kind:'icbm',always:true,min:320,max:.72,stretch:false,mediumLarge:true},
   {id:'boiler',src:'logo-boiler.png',kind:'boiler',always:true,min:90,max:.42,stretch:true}
 ];
 
@@ -22,7 +22,15 @@ const chosen=[
 
 const powCount=Math.random()<.5?2:3;
 shuffled(POW_POOL).slice(0,powCount).forEach((src,i)=>{
-  chosen.push({id:'pow-'+i,src,kind:'pow',min:100,max:.48,stretch:true});
+  chosen.push({
+    id:'pow-'+i,
+    src,
+    kind:'pow',
+    min:100,
+    max:.62,
+    stretch:true,
+    heroHuge:Math.random()<.32
+  });
 });
 
 // Sometimes one date / lineup / POW starts nearly full-screen.
@@ -36,6 +44,7 @@ let idle=false;
 let idleTimer=null;
 let raf=null;
 let last=performance.now();
+let globallyPaused=false;
 
 function innerBounds(){
   const edge=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--edge-size'))||54;
@@ -54,9 +63,16 @@ function randomWidth(spec,naturalW,naturalH){
   const b=innerBounds();
   const aspect=naturalW/naturalH;
 
+  if(spec.mediumLarge){
+    const minW=Math.min(b.width*.38,Math.max(240,spec.min));
+    const maxW=Math.min(b.width*.68,b.height*aspect*.72);
+    return rand(Math.min(minW,maxW),Math.max(minW,maxW));
+  }
+
   if(spec.heroHuge){
-    const full=Math.min(b.width*.97,b.height*aspect*.97);
-    return Math.max(spec.min,full*rand(.88,1));
+    const fullness=spec.kind==='pow'?rand(.94,1):rand(.88,1);
+    const full=Math.min(b.width*.98,b.height*aspect*.98);
+    return Math.max(spec.min,full*fullness);
   }
 
   const maxByViewport=Math.max(spec.min,Math.min(
@@ -104,7 +120,6 @@ function makeObject(spec){
         sx:1,sy:1,
         tx:1,ty:1,
         hovered:false,
-        pinned:false,
         nextStretch:performance.now()+rand(550,1500)
       };
       stage.appendChild(img);
@@ -118,14 +133,6 @@ function makeObject(spec){
       img.addEventListener('mouseleave',()=>{
         o.hovered=false;
         img.classList.remove('is-hovered');
-      });
-
-      img.addEventListener('click',e=>{
-        e.stopPropagation();
-        o.pinned=true;
-        o.tx=o.sx;
-        o.ty=o.sy;
-        img.classList.add('is-pinned');
       });
 
       objects.push(o);
@@ -175,7 +182,7 @@ function tick(now){
 
   if(idle){
     for(const o of objects){
-      if(o.hovered || o.pinned) continue;
+      if(o.hovered || globallyPaused) continue;
 
       if(now>=o.nextStretch) chooseStretch(o,now);
 
@@ -194,7 +201,7 @@ function tick(now){
 }
 
 function armIdle(){
-  if(idle) return; // once DVD mode starts, mouse movement does not cancel it
+  if(idle || globallyPaused) return; // once DVD mode starts, mouse movement does not cancel it
   clearTimeout(idleTimer);
   idleTimer=setTimeout(()=>{
     idle=true;
@@ -205,10 +212,18 @@ function armIdle(){
 
 // Before DVD mode: movement keeps delaying the 5-second timer.
 // During DVD mode: movement is allowed so hover can pause individual objects.
-addEventListener('mousemove',()=>{ if(!idle) armIdle(); },{passive:true});
-addEventListener('touchmove',()=>{ if(!idle) armIdle(); },{passive:true});
-addEventListener('pointerdown',()=>{ if(!idle) armIdle(); },{passive:true});
-addEventListener('keydown',()=>{ if(!idle) armIdle(); });
+addEventListener('mousemove',()=>{ if(!idle && !globallyPaused) armIdle(); },{passive:true});
+addEventListener('touchmove',()=>{ if(!idle && !globallyPaused) armIdle(); },{passive:true});
+addEventListener('pointerdown',e=>{
+  globallyPaused=!globallyPaused;
+  document.body.classList.toggle('all-paused',globallyPaused);
+
+  // If DVD mode has not started yet, clicking only toggles the global pause state.
+  // When unpaused before idle begins, keep the 5-second timer running.
+  if(!idle && !globallyPaused) armIdle();
+},{passive:true});
+
+addEventListener('keydown',()=>{ if(!idle && !globallyPaused) armIdle(); });
 
 addEventListener('resize',()=>{
   buildMarbleBorder();

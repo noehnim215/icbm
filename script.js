@@ -22,6 +22,8 @@ const chosen=[
 
 const powCount=Math.random()<.5?2:3;
 shuffled(POW_POOL).slice(0,powCount).forEach((src,i)=>{
+  const r=Math.random();
+  const layer=r<.40?'back':(r<.75?'middle':'top');
   chosen.push({
     id:'pow-'+i,
     src,
@@ -29,7 +31,8 @@ shuffled(POW_POOL).slice(0,powCount).forEach((src,i)=>{
     min:100,
     max:.62,
     stretch:true,
-    heroHuge:Math.random()<.32
+    heroHuge:Math.random()<.32,
+    layer
   });
 });
 
@@ -111,7 +114,7 @@ function makeObject(spec){
     const img=new Image();
     img.src=spec.src;
     img.alt=spec.kind;
-    img.className='poster-object '+spec.kind;
+    img.className='poster-object '+spec.kind+(spec.layer?' layer-'+spec.layer:'');
     img.draggable=false;
     img.onload=()=>{
       const baseW=randomWidth(spec,img.naturalWidth,img.naturalHeight);
@@ -126,21 +129,11 @@ function makeObject(spec){
         vx,vy,
         sx:1,sy:1,
         tx:1,ty:1,
-        hovered:false,
         nextStretch:performance.now()+rand(550,1500)
       };
       stage.appendChild(img);
       placeRandom(o);
       apply(o);
-
-      img.addEventListener('mouseenter',()=>{
-        o.hovered=true;
-        img.classList.add('is-hovered');
-      });
-      img.addEventListener('mouseleave',()=>{
-        o.hovered=false;
-        img.classList.remove('is-hovered');
-      });
 
       objects.push(o);
       resolve();
@@ -189,7 +182,7 @@ function tick(now){
 
   if(idle){
     for(const o of objects){
-      if(o.hovered || globallyPaused) continue;
+      if(globallyPaused) continue;
 
       if(now>=o.nextStretch) chooseStretch(o,now);
 

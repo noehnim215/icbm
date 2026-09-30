@@ -163,8 +163,6 @@ function apply(o){
   o.el.style.transform='scale('+o.sx+','+o.sy+')';
 }
 
-let activeRsvpPow=null;
-
 function spawnPowFromRsvp(cx,cy){
   const src=Math.random()<.37
     ? pick(RSVP_POW_POOL)
@@ -178,16 +176,17 @@ function spawnPowFromRsvp(cx,cy){
   img.onload=()=>{
     const b=innerBounds();
     const aspect=img.naturalWidth/img.naturalHeight;
-    const maxW=Math.min(b.width*.56,b.height*aspect*.56);
-    const baseW=rand(Math.max(90,maxW*.42),Math.max(110,maxW));
+    const fitW=Math.min(b.width*.9,b.height*aspect*.9);
+    const sizeRoll=Math.random();
+    const pctRange=sizeRoll<.60
+      ? [0.10,0.24]
+      : (sizeRoll<.95 ? [0.25,0.48] : [0.60,0.88]);
+    const baseW=Math.max(
+      window.innerWidth<=700?70:90,
+      Math.min(fitW,b.width*rand(pctRange[0],pctRange[1]))
+    );
     const baseH=baseW*(img.naturalHeight/img.naturalWidth);
     const mobile=window.innerWidth<=700;
-    if(activeRsvpPow){
-      const idx=objects.indexOf(activeRsvpPow);
-      if(idx>=0) objects.splice(idx,1);
-      activeRsvpPow.el.remove();
-      activeRsvpPow=null;
-    }
 
     const o={
       spec:{id:'rsvp-pow-'+Date.now(),src,kind:'pow',min:90,max:.56,stretch:true,layer:'top'},
@@ -205,7 +204,6 @@ function spawnPowFromRsvp(cx,cy){
 
     stage.appendChild(img);
     objects.push(o);
-    activeRsvpPow=o;
     apply(o);
 
     const start=performance.now();

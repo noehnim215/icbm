@@ -380,3 +380,31 @@ function tickMarbles(now){
   last=performance.now();
   raf=requestAnimationFrame(tick);
 })();
+
+// Background music: autoplay when allowed, otherwise start on the first user interaction.
+const bgMusic=document.getElementById('bg-music');
+if(bgMusic){
+  bgMusic.volume=0.85;
+
+  const tryPlayMusic=()=>{
+    const p=bgMusic.play();
+    if(p&&typeof p.catch==='function') p.catch(()=>{});
+  };
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',tryPlayMusic,{once:true});
+  }else{
+    tryPlayMusic();
+  }
+
+  const unlockMusic=()=>{
+    tryPlayMusic();
+    ['pointerdown','touchstart','keydown'].forEach(evt=>{
+      window.removeEventListener(evt,unlockMusic);
+    });
+  };
+
+  ['pointerdown','touchstart','keydown'].forEach(evt=>{
+    window.addEventListener(evt,unlockMusic,{passive:true});
+  });
+}

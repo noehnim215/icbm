@@ -284,16 +284,30 @@ function explodeRsvp(o){
   const previousWidth=Math.max(1,r.width);
   const previousSrc=o.spec.src;
 
-  // Remove exactly the RSVP that was clicked.
+  // RSVP visibly bursts/pops first, then turns into one POW.
   const idx=objects.indexOf(o);
   if(idx>=0) objects.splice(idx,1);
-  o.el.remove();
 
-  // Exactly one new POW per click. Older RSVP-generated POWs stay on screen.
-  spawnPowFromRsvp(cx,cy);
+  const animation=o.el.animate([
+    {opacity:1,transform:`scale(${o.sx},${o.sy}) rotate(0deg)`,filter:'blur(0px)'},
+    {opacity:.9,transform:`scale(${o.sx*1.12},${o.sy*.82}) rotate(-3deg)`,filter:'blur(0px)'},
+    {opacity:.75,transform:`scale(${o.sx*.82},${o.sy*1.22}) rotate(4deg)`,filter:'blur(1px)'},
+    {opacity:0,transform:`scale(${o.sx*1.7},${o.sy*1.7}) rotate(10deg)`,filter:'blur(5px)'}
+  ],{
+    duration:360,
+    easing:'cubic-bezier(.18,.8,.2,1)',
+    fill:'forwards'
+  });
 
-  // Then create exactly one new, smaller RSVP for the next click.
-  spawnNextRsvp(cx,cy,previousWidth,previousSrc);
+  animation.finished.finally(()=>{
+    o.el.remove();
+
+    // Exactly one new POW per click. Older RSVP-generated POWs stay on screen.
+    spawnPowFromRsvp(cx,cy);
+
+    // Then create exactly one new, smaller RSVP for the next click.
+    spawnNextRsvp(cx,cy,previousWidth,previousSrc);
+  });
 }
 
 function makeObject(spec){

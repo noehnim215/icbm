@@ -109,3 +109,8 @@ body{
 .poster-object.rsvp{
   z-index:11;
 }
+
+/* ICBM top-three random layers; top3 is highest and is chosen ~69% of loads */
+.poster-object.icbm.layer-top1{z-index:20!important}
+.poster-object.icbm.layer-top2{z-index:24!important}
+.poster-object.icbm.layer-top3{z-index:28!important}

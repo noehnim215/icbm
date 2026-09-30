@@ -288,19 +288,13 @@ function buildMarbleBorder(){
 }
 
 function setupMarbleChaos(){
-  const roll=Math.random();
-
-  // 1 in 20: marbles fall straight down and disappear.
-  if(roll<0.05){
-    marbleChaosMode='disappear';
-  }
-  // Otherwise about 1 in 10: marbles themselves animate.
-  else if(roll<0.15){
-    marbleChaosMode=Math.random()<0.5?'dvd':'pile';
-  }else{
+  // About 1 in 7 page loads: all border marbles detach and float
+  // in zero-gravity, bouncing around like DVD logos.
+  if(Math.random()>=1/7){
     marbleChaosMode='none';
     return;
   }
+  marbleChaosMode='dvd';
 
   const source=[...document.querySelectorAll('.marble-edge img')];
   if(!source.length)return;
@@ -321,8 +315,9 @@ function setupMarbleChaos(){
     clone.style.height=r.height+'px';
     marbleChaosLayer.appendChild(clone);
 
-    let vx=(Math.random()<.5?-1:1)*rand(55,130);
-    let vy=(Math.random()<.5?-1:1)*rand(55,130);
+    const mobile=window.innerWidth<=700;
+    let vx=(Math.random()<.5?-1:1)*rand(mobile?22:55,mobile?58:130);
+    let vy=(Math.random()<.5?-1:1)*rand(mobile?22:55,mobile?58:130);
 
     const cols=Math.max(1,Math.floor(window.innerWidth/size));
     const row=Math.floor(i/cols);
@@ -366,29 +361,6 @@ function tickMarbles(now){
         if(o.y<=0){o.y=0;o.vy=Math.abs(o.vy)}
         if(o.x+w>=innerWidth){o.x=Math.max(0,innerWidth-w);o.vx=-Math.abs(o.vx)}
         if(o.y+h>=innerHeight){o.y=Math.max(0,innerHeight-h);o.vy=-Math.abs(o.vy)}
-      }
-
-      if(marbleChaosMode==='pile' && !o.settled){
-        o.vy+=900*dt;
-        o.x+=o.vx*dt*.22;
-        o.y+=o.vy*dt;
-
-        // steer gently into a non-overlapping grid pile
-        o.x+=(o.targetX-o.x)*Math.min(1,dt*1.4);
-        if(o.y>=o.targetY){
-          o.y=o.targetY;
-          o.x=o.targetX;
-          o.vx=0;o.vy=0;
-          o.settled=true;
-        }
-      }
-
-      if(marbleChaosMode==='disappear'){
-        o.vy=Math.max(120,o.vy+650*dt);
-        o.y+=o.vy*dt;
-        if(o.y>innerHeight+o.el.offsetHeight){
-          o.el.style.display='none';
-        }
       }
 
       o.el.style.left=o.x+'px';

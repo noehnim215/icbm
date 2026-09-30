@@ -51,7 +51,7 @@ const select=panel.querySelector('.editor-select');
 items.forEach((x,i)=>select.add(new Option(x.name,String(i))));
 const ex=panel.querySelector('.ex'),ey=panel.querySelector('.ey'),ew=panel.querySelector('.ew');
 let selected=null,editing=false,drag=null,resize=null;
-const key='icbm-layout-v1';
+const key='icbm-layout-v2';
 
 function pct(n){return Math.round(n*10)/10}
 function values(el){

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+<defs>
+ <linearGradient id="edgeH" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050505"/><stop offset=".065" stop-color="#929292"/><stop offset=".935" stop-color="#929292"/><stop offset="1" stop-color="#050505"/></linearGradient>
+ <linearGradient id="edgeV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#050505"/><stop offset=".06" stop-color="#929292"/><stop offset=".94" stop-color="#929292"/><stop offset="1" stop-color="#050505"/></linearGradient>
+</defs>
+<rect width="1200" height="1500" fill="#929292"/>
+<rect width="1200" height="1500" fill="url(#edgeH)" opacity=".9"/>
+<rect width="1200" height="1500" fill="url(#edgeV)" opacity=".9"/>
+<image href="red-circle.png" x="8" y="8" width="68" height="68"/>
+<image href="blue-circle.png" x="86" y="8" width="68" height="68"/>
+<image href="green-circle.png" x="164" y="8" width="68" height="68"/>
+<image href="orange-circle.png" x="242" y="8" width="68" height="68"/>
+<image href="red-circle.png" x="320" y="8" width="68" height="68"/>
+<image href="blue-circle.png" x="398" y="8" width="68" height="68"/>
+<image href="green-circle.png" x="476" y="8" width="68" height="68"/>
+<image href="orange-circle.png" x="554" y="8" width="68" height="68"/>
+<image href="red-circle.png" x="632" y="8" width="68" height="68"/>
+<image href="blue-circle.png" x="710" y="8" width="68" height="68"/>
+<image href="green-circle.png" x="788" y="8" width="68" height="68"/>
+<image href="orange-circle.png" x="866" y="8" width="68" height="68"/>
+<image href="red-circle.png" x="944" y="8" width="68" height="68"/>
+<image href="blue-circle.png" x="1022" y="8" width="68" height="68"/>
+<image href="green-circle.png" x="1100" y="8" width="68" height="68"/>
+<image href="red-circle.png" x="8" y="82" width="68" height="68"/>
+<image href="blue-circle.png" x="8" y="160" width="68" height="68"/>
+<image href="green-circle.png" x="8" y="238" width="68" height="68"/>
+<image href="orange-circle.png" x="8" y="316" width="68" height="68"/>
+<image href="red-circle.png" x="8" y="394" width="68" height="68"/>
+<image href="blue-circle.png" x="8" y="472" width="68" height="68"/>
+<image href="green-circle.png" x="8" y="550" width="68" height="68"/>
+<image href="orange-circle.png" x="8" y="628" width="68" height="68"/>
+<image href="red-circle.png" x="8" y="706" width="68" height="68"/>
+<image href="blue-circle.png" x="8" y="784" width="68" height="68"/>
+<image href="green-circle.png" x="8" y="862" width="68" height="68"/>
+<image href="orange-circle.png" x="8" y="940" width="68" height="68"/>
+<image href="red-circle.png" x="8" y="1018" width="68" height="68"/>
+<image href="blue-circle.png" x="8" y="1096" width="68" height="68"/>
+<image href="green-circle.png" x="8" y="1174" width="68" height="68"/>
+<image href="orange-circle.png" x="8" y="1252" width="68" height="68"/>
+<image href="red-circle.png" x="8" y="1330" width="68" height="68"/>
+<image href="green-circle.png" x="1124" y="82" width="68" height="68"/>
+<image href="orange-circle.png" x="1124" y="160" width="68" height="68"/>
+<image href="red-circle.png" x="1124" y="238" width="68" height="68"/>
+<image href="blue-circle.png" x="1124" y="316" width="68" height="68"/>
+<image href="green-circle.png" x="1124" y="394" width="68" height="68"/>
+<image href="orange-circle.png" x="1124" y="472" width="68" height="68"/>
+<image href="red-circle.png" x="1124" y="550" width="68" height="68"/>
+<image href="blue-circle.png" x="1124" y="628" width="68" height="68"/>
+<image href="green-circle.png" x="1124" y="706" width="68" height="68"/>
+<image href="orange-circle.png" x="1124" y="784" width="68" height="68"/>
+<image href="red-circle.png" x="1124" y="862" width="68" height="68"/>
+<image href="blue-circle.png" x="1124" y="940" width="68" height="68"/>
+<image href="green-circle.png" x="1124" y="1018" width="68" height="68"/>
+<image href="orange-circle.png" x="1124" y="1096" width="68" height="68"/>
+<image href="red-circle.png" x="1124" y="1174" width="68" height="68"/>
+<image href="blue-circle.png" x="1124" y="1252" width="68" height="68"/>
+<image href="green-circle.png" x="1124" y="1330" width="68" height="68"/>
+<image href="green-circle.png" x="8" y="1424" width="68" height="68"/>
+<image href="orange-circle.png" x="86" y="1424" width="68" height="68"/>
+<image href="red-circle.png" x="164" y="1424" width="68" height="68"/>
+<image href="blue-circle.png" x="242" y="1424" width="68" height="68"/>
+<image href="green-circle.png" x="320" y="1424" width="68" height="68"/>
+<image href="orange-circle.png" x="398" y="1424" width="68" height="68"/>
+<image href="red-circle.png" x="476" y="1424" width="68" height="68"/>
+<image href="blue-circle.png" x="554" y="1424" width="68" height="68"/>
+<image href="green-circle.png" x="632" y="1424" width="68" height="68"/>
+<image href="orange-circle.png" x="710" y="1424" width="68" height="68"/>
+<image href="red-circle.png" x="788" y="1424" width="68" height="68"/>
+<image href="blue-circle.png" x="866" y="1424" width="68" height="68"/>
+<image href="green-circle.png" x="944" y="1424" width="68" height="68"/>
+<image href="orange-circle.png" x="1022" y="1424" width="68" height="68"/>
+<image href="red-circle.png" x="1100" y="1424" width="68" height="68"/>
+</svg>

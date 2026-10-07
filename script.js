@@ -419,49 +419,54 @@ function playOtherSequence(o){
   const idx=objects.indexOf(o);
   if(idx>=0) objects.splice(idx,1);
 
-  // Freeze it at the exact visual position on pointer-down.
   const r=o.el.getBoundingClientRect();
+
+  // Lock the exact clicked visual box before changing the source.
   o.el.getAnimations().forEach(a=>a.cancel());
-  o.el.style.position='fixed';
-  o.el.style.left=r.left+'px';
-  o.el.style.top=r.top+'px';
-  o.el.style.width=r.width+'px';
-  o.el.style.height=r.height+'px';
-  o.el.style.transform='none';
-  o.el.style.transformOrigin='50% 50%';
-  o.el.style.zIndex='92';
-  o.el.style.pointerEvents='none';
-  o.el.style.opacity='1';
-  o.el.style.filter='none';
+  Object.assign(o.el.style,{
+    position:'fixed',
+    left:r.left+'px',
+    top:r.top+'px',
+    width:r.width+'px',
+    height:r.height+'px',
+    transform:'none',
+    transformOrigin:'50% 50%',
+    opacity:'1',
+    filter:'none',
+    zIndex:'92',
+    pointerEvents:'none'
+  });
 
-  // Immediate: OTHER -> OTHER2 in the same pointer-down event.
-  o.el.src=OTHER_SEQUENCE[0];
+  const frames=['OTHER2.png','OTHER3.png','OTHER4.png','OTHER5.png','OTHER6.png'];
+  let frame=0;
 
-  let step=1;
-  const timer=setInterval(()=>{
-    if(step<OTHER_SEQUENCE.length){
-      o.el.src=OTHER_SEQUENCE[step];
-      step+=1;
+  // Change to OTHER2 on the very same pointer-down.
+  o.el.src=frames[0];
+  frame=1;
+
+  const nextFrame=()=>{
+    if(frame<frames.length){
+      o.el.src=frames[frame];
+      frame+=1;
+      setTimeout(nextFrame,1000);
       return;
     }
 
-    clearInterval(timer);
-
-    // OTHER6 has now been visible for its full 1 second.
-    const noisy=o.el.animate([
+    // OTHER6 has stayed for one second: now disappear in place.
+    o.el.animate([
       {opacity:1,filter:'blur(0px) contrast(1)'},
-      {opacity:.78,filter:'blur(2px) contrast(1.4)'},
-      {opacity:.48,filter:'blur(5px) contrast(1.9)'},
-      {opacity:.20,filter:'blur(10px) contrast(2.5)'},
-      {opacity:0,filter:'blur(18px) contrast(3.2)'}
+      {opacity:.7,filter:'blur(2px) contrast(1.35)'},
+      {opacity:.38,filter:'blur(6px) contrast(1.8)'},
+      {opacity:.12,filter:'blur(12px) contrast(2.4)'},
+      {opacity:0,filter:'blur(20px) contrast(3)'}
     ],{
       duration:650,
       easing:'ease-in',
       fill:'forwards'
-    });
+    }).finished.finally(()=>o.el.remove());
+  };
 
-    noisy.finished.finally(()=>o.el.remove());
-  },1000);
+  setTimeout(nextFrame,1000);
 }
 
 function transformBrainDeadToShirt(o){
@@ -574,88 +579,86 @@ function dissolveShirtToggle(o){
   if(o.bursting) return;
   o.bursting=true;
 
-  const next=o.spec.shirtSide==='front'?'back':'front';
-  const nextSrc=next==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
+  const nextSide=o.spec.shirtSide==='front'?'back':'front';
+  const nextSrc=nextSide==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
+  const r=o.el.getBoundingClientRect();
 
-  const preload=new Image();
-  preload.src=nextSrc;
+  const original={
+    x:o.x,y:o.y,
+    baseW:o.baseW,baseH:o.baseH,
+    sx:o.sx,sy:o.sy
+  };
 
-  preload.onload=()=>{
-    const r=o.el.getBoundingClientRect();
+  // Freeze current shirt exactly where it is.
+  o.el.getAnimations().forEach(a=>a.cancel());
+  Object.assign(o.el.style,{
+    position:'fixed',
+    left:r.left+'px',
+    top:r.top+'px',
+    width:r.width+'px',
+    height:r.height+'px',
+    transform:'none',
+    transformOrigin:'50% 50%',
+    opacity:'1',
+    filter:'none',
+    zIndex:'94'
+  });
 
-    // Keep the moving shirt visually frozen exactly where it is.
-    const original={
-      x:o.x,
-      y:o.y,
-      baseW:o.baseW,
-      baseH:o.baseH,
-      sx:o.sx,
-      sy:o.sy
-    };
+  const incoming=new Image();
+  incoming.src=nextSrc;
+  incoming.alt='shirt';
+  incoming.className='poster-object shirt shirt-crossfade';
+  incoming.draggable=false;
 
-    o.el.style.position='fixed';
-    o.el.style.left=r.left+'px';
-    o.el.style.top=r.top+'px';
-    o.el.style.width=r.width+'px';
-    o.el.style.height=r.height+'px';
-    o.el.style.transform='none';
-    o.el.style.transformOrigin='50% 50%';
-    o.el.style.opacity='1';
-    o.el.style.filter='none';
-    o.el.style.zIndex='94';
+  const beginCrossfade=()=>{
+    Object.assign(incoming.style,{
+      position:'fixed',
+      left:r.left+'px',
+      top:r.top+'px',
+      width:r.width+'px',
+      height:r.height+'px',
+      transform:'none',
+      transformOrigin:'50% 50%',
+      opacity:'0',
+      filter:'none',
+      pointerEvents:'none',
+      zIndex:'95'
+    });
 
-    // Incoming side is placed on the exact same visual box.
-    const overlay=new Image();
-    overlay.src=nextSrc;
-    overlay.alt='shirt';
-    overlay.className='poster-object shirt shirt-crossfade';
-    overlay.draggable=false;
-    overlay.style.position='fixed';
-    overlay.style.left=r.left+'px';
-    overlay.style.top=r.top+'px';
-    overlay.style.width=r.width+'px';
-    overlay.style.height=r.height+'px';
-    overlay.style.transform='none';
-    overlay.style.transformOrigin='50% 50%';
-    overlay.style.opacity='0';
-    overlay.style.filter='none';
-    overlay.style.pointerEvents='none';
-    overlay.style.zIndex='95';
-    document.body.appendChild(overlay);
+    document.body.appendChild(incoming);
 
-    // Crossfade ONLY: no blur, no scale, no flash.
-    const duration=600;
+    const duration=650;
     const easing='cubic-bezier(.4,0,.2,1)';
 
-    const fadeOut=o.el.animate(
+    const out=o.el.animate(
       [{opacity:1},{opacity:0}],
       {duration,easing,fill:'forwards'}
     );
-
-    const fadeIn=overlay.animate(
+    const into=incoming.animate(
       [{opacity:0},{opacity:1}],
       {duration,easing,fill:'forwards'}
     );
 
-    Promise.allSettled([fadeOut.finished,fadeIn.finished]).then(()=>{
+    Promise.allSettled([out.finished,into.finished]).then(()=>{
       o.el.getAnimations().forEach(a=>a.cancel());
-      overlay.getAnimations().forEach(a=>a.cancel());
+      incoming.getAnimations().forEach(a=>a.cancel());
 
       o.el.src=nextSrc;
       o.spec.src=nextSrc;
-      o.spec.shirtSide=next;
+      o.spec.shirtSide=nextSide;
 
-      // Restore the same moving shirt object after the crossfade.
-      o.el.style.position='absolute';
-      o.el.style.width=original.baseW+'px';
-      o.el.style.height='auto';
-      o.el.style.left=original.x+'px';
-      o.el.style.top=original.y+'px';
-      o.el.style.transformOrigin='50% 50%';
-      o.el.style.transform='scale('+original.sx+','+original.sy+')';
-      o.el.style.opacity='1';
-      o.el.style.filter='none';
-      o.el.style.zIndex='';
+      Object.assign(o.el.style,{
+        position:'absolute',
+        left:original.x+'px',
+        top:original.y+'px',
+        width:original.baseW+'px',
+        height:'auto',
+        transform:'scale('+original.sx+','+original.sy+')',
+        transformOrigin:'50% 50%',
+        opacity:'1',
+        filter:'none',
+        zIndex:''
+      });
 
       o.x=original.x;
       o.y=original.y;
@@ -664,15 +667,20 @@ function dissolveShirtToggle(o){
       o.sx=original.sx;
       o.sy=original.sy;
 
-      overlay.remove();
+      incoming.remove();
       o.bursting=false;
       apply(o);
     });
   };
 
-  preload.onerror=()=>{
-    o.bursting=false;
-  };
+  if(incoming.complete && incoming.naturalWidth){
+    beginCrossfade();
+  }else{
+    incoming.onload=beginCrossfade;
+    incoming.onerror=()=>{
+      o.bursting=false;
+    };
+  }
 }
 
 function chooseStretch(o,now){

@@ -117,23 +117,18 @@ function randomWidth(spec,naturalW,naturalH){
   }
 
   if(spec.kind==='other'){
-        img.addEventListener('pointerdown',e=>{
-          e.stopPropagation();
-          e.preventDefault();
-          playOtherSequence(o);
-        });
-        img.addEventListener('click',e=>{
-          e.stopPropagation();
-          e.preventDefault();
-        });
-      }
+    const maxByViewport=Math.min(b.width*.48,b.height*aspect*.72);
+    const minByViewport=Math.min(Math.max(70,b.width*.08),maxByViewport);
+    const t=Math.pow(Math.random(),.8);
+    return minByViewport+(maxByViewport-minByViewport)*t;
+  }
 
   if(spec.mediumLarge){
     const minW=Math.min(b.width*.46,Math.max(300,spec.min));
     const maxW=Math.min(b.width*.86,b.height*aspect*.86);
     const lo=Math.min(minW,maxW);
     const hi=Math.max(minW,maxW);
-    const t=Math.pow(Math.random(),0.55); // bias strongly toward larger sizes
+    const t=Math.pow(Math.random(),0.55);
     return lo+(hi-lo)*t;
   }
 
@@ -414,6 +409,7 @@ function makeObject(spec){
       objects.push(o);
       resolve();
     };
+    img.onerror=()=>resolve();
   });
 }
 

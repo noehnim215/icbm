@@ -2,10 +2,10 @@ const stage=document.getElementById('stage');
 
 const DATE_POOL=['date.png','date-2.png','date3.png','date4.png','date5.png'];
 const LINEUP_POOL=['lineup.png','lineup-2.png','lineup3.png','lineup4.png'];
-const POW_POOL=['pow.png','small-pow.png','pow4.png','pow5.png'];
-const POW_RARE='pow3.png';
+const POW_POOL=['BLUE-NEW-PEW. 2png','BLUE-NEW-PEW.png','GREEN-NEW-PEW-2.png','GREEN-NEW-PEW.png','RED-NEW-PEW-1.png','RED-NEW-PEW.png','RED-NEW-PEW2-2.png','RED-NEW-PEW2.png','YELLOW-NEW-PEW2.png'];
+const POW_RARE='RED-NEW-PEW2.png';
 const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsvp6.png','rsvp7.png'];
-const RSVP_POW_POOL=['pow-for-rsvp.png','pow-for-rsvp2.png'];
+const RSVP_POW_POOL=['BLUE-NEW-PEW.png','YELLOW-NEW-PEW2.png'];
 
 const specs=[
   {id:'icbm',src:'icbm.png',kind:'icbm',always:true,min:380,max:.88,stretch:false,mediumLarge:true},

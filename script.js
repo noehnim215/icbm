@@ -404,17 +404,17 @@ function transformBrainDeadToShirt(o){
   const idx=objects.indexOf(o);
   if(idx>=0) objects.splice(idx,1);
 
-  // Freeze logo where it was clicked, same idea as RSVP.
+  // Move the clicked logo to the center first so no second effect appears at its old spot.
   o.el.style.position='fixed';
-  o.el.style.left=r.left+'px';
-  o.el.style.top=r.top+'px';
+  o.el.style.left=(cx-r.width/2)+'px';
+  o.el.style.top=(cy-r.height/2)+'px';
   o.el.style.width=r.width+'px';
   o.el.style.height=r.height+'px';
   o.el.style.transform='none';
   o.el.style.transformOrigin='50% 50%';
   o.el.style.zIndex='90';
 
-  // Spawn shirt front immediately from the same center.
+  // Spawn shirt front from the same centered position.
   spawnBrainDeadShirt(cx,cy,r.width);
 
   // RSVP-style compression / flash / snap-out.

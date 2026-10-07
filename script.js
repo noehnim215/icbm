@@ -297,9 +297,8 @@ function explodeRsvp(o){
   o.bursting=true;
 
   const r=o.el.getBoundingClientRect();
-  const b=innerBounds();
-  const cx=b.left+b.width/2;
-  const cy=b.top+b.height/2;
+  const cx=r.left+r.width/2;
+  const cy=r.top+r.height/2;
   const previousWidth=Math.max(1,r.width);
   const previousSrc=o.spec.src;
 
@@ -564,7 +563,6 @@ function dissolveShirtToggle(o){
   const nextSide=o.spec.shirtSide==='front'?'back':'front';
   const nextSrc=nextSide==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
 
-  // Freeze motion while crossfading. Do not alter x/y/size/scale.
   const incoming=new Image();
   incoming.src=nextSrc;
   incoming.alt='shirt';
@@ -572,6 +570,7 @@ function dissolveShirtToggle(o){
   incoming.draggable=false;
 
   const begin=()=>{
+    // Match the current moving shirt exactly. Do not change its center, size, or scale.
     incoming.style.left=o.x+'px';
     incoming.style.top=o.y+'px';
     incoming.style.width=o.baseW+'px';
@@ -588,7 +587,7 @@ function dissolveShirtToggle(o){
     const duration=650;
     const easing='linear';
 
-    // CROSSFADE ONLY: opacity changes, nothing else.
+    // Pure simultaneous crossfade, both directions.
     const out=o.el.animate(
       [{opacity:1},{opacity:0}],
       {duration,easing,fill:'forwards'}

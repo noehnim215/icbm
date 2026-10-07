@@ -149,5 +149,5 @@ body.composition-powHugeBack_textTiny .poster-object.icbm{z-index:28!important}
 
 /* custom image cursor */
 html,body,#stage,.poster-object,*{
-  cursor:url("cursor.png") 4 4, auto!important;
+  cursor:url("m.png") 20 8, auto!important;
 }

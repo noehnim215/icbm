@@ -446,6 +446,7 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
   img.className='poster-object shirt';
   img.draggable=false;
   img.style.transformOrigin='50% 50%';
+  img.style.transformOrigin='50% 50%';
 
   img.onload=()=>{
     const b=innerBounds();
@@ -472,7 +473,7 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
     img.addEventListener('pointerdown',e=>e.stopPropagation());
     img.addEventListener('click',e=>{
       e.stopPropagation();
-      dissolveShirtToBack(shirt);
+      dissolveShirtToggle(shirt);
     });
 
     stage.appendChild(img);

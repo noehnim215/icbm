@@ -445,6 +445,7 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
   img.alt='shirt';
   img.className='poster-object shirt';
   img.draggable=false;
+  img.style.transformOrigin='50% 50%';
 
   img.onload=()=>{
     const b=innerBounds();
@@ -484,6 +485,12 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
       const eased=1-Math.pow(1-t,3);
       shirt.sx=.18+(.82*eased);
       shirt.sy=.18+(.82*eased);
+
+      const currentW=shirt.baseW*shirt.sx;
+      const currentH=shirt.baseH*shirt.sy;
+      shirt.x=clamp(cx-currentW/2,b.left,Math.max(b.left,b.right-currentW));
+      shirt.y=clamp(cy-currentH/2,b.top,Math.max(b.top,b.bottom-currentH));
+
       apply(shirt);
       if(t<1) requestAnimationFrame(pop);
     };
@@ -492,14 +499,15 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
 }
 
 function dissolveShirtToBack(o){
-  if(o.bursting || o.spec.shirtSide==='back') return;
+  if(o.bursting) return;
   o.bursting=true;
 
-  const oldSrc=o.el.src;
+  const next=o.spec.shirtSide==='front'?'back':'front';
+  const nextSrc=next==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
   const r=o.el.getBoundingClientRect();
 
   const overlay=new Image();
-  overlay.src='tshirts-1-b.png';
+  overlay.src=nextSrc;
   overlay.className='poster-object shirt shirt-dissolve';
   overlay.style.position='fixed';
   overlay.style.left=r.left+'px';
@@ -509,25 +517,26 @@ function dissolveShirtToBack(o){
   overlay.style.opacity='0';
   overlay.style.zIndex='95';
   overlay.style.pointerEvents='none';
+  overlay.style.transformOrigin='50% 50%';
   document.body.appendChild(overlay);
 
   const fadeOut=o.el.animate([
-    {opacity:1,filter:'blur(0px)'},
-    {opacity:.45,filter:'blur(3px)'},
-    {opacity:0,filter:'blur(8px)'}
+    {opacity:1,filter:'blur(0px)',transform:'scale(1)'},
+    {opacity:.45,filter:'blur(3px)',transform:'scale(.98)'},
+    {opacity:0,filter:'blur(8px)',transform:'scale(.94)'}
   ],{duration:420,easing:'ease-in-out',fill:'forwards'});
 
   const fadeIn=overlay.animate([
-    {opacity:0,filter:'blur(8px)'},
-    {opacity:.55,filter:'blur(3px)'},
-    {opacity:1,filter:'blur(0px)'}
+    {opacity:0,filter:'blur(8px)',transform:'scale(.94)'},
+    {opacity:.55,filter:'blur(3px)',transform:'scale(.98)'},
+    {opacity:1,filter:'blur(0px)',transform:'scale(1)'}
   ],{duration:420,easing:'ease-in-out',fill:'forwards'});
 
   Promise.allSettled([fadeOut.finished,fadeIn.finished]).then(()=>{
     o.el.getAnimations().forEach(a=>a.cancel());
-    o.el.src='tshirts-1-b.png';
-    o.spec.src='tshirts-1-b.png';
-    o.spec.shirtSide='back';
+    o.el.src=nextSrc;
+    o.spec.src=nextSrc;
+    o.spec.shirtSide=next;
     o.el.style.opacity='1';
     o.el.style.filter='';
     overlay.remove();

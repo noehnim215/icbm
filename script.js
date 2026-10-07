@@ -487,10 +487,8 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
       shirt.sx=.18+(.82*eased);
       shirt.sy=.18+(.82*eased);
 
-      const currentW=shirt.baseW*shirt.sx;
-      const currentH=shirt.baseH*shirt.sy;
-      shirt.x=clamp(cx-currentW/2,b.left,Math.max(b.left,b.right-currentW));
-      shirt.y=clamp(cy-currentH/2,b.top,Math.max(b.top,b.bottom-currentH));
+      shirt.x=clamp(cx-shirt.baseW/2,b.left,Math.max(b.left,b.right-shirt.baseW));
+      shirt.y=clamp(cy-shirt.baseH/2,b.top,Math.max(b.top,b.bottom-shirt.baseH));
 
       apply(shirt);
       if(t<1) requestAnimationFrame(pop);
@@ -505,39 +503,99 @@ function dissolveShirtToggle(o){
 
   const next=o.spec.shirtSide==='front'?'back':'front';
   const nextSrc=next==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
+  const r=o.el.getBoundingClientRect();
 
-  const out=o.el.animate([
-    {opacity:1,filter:'blur(0px)',transform:'scale(1)'},
-    {opacity:.45,filter:'blur(4px)',transform:'scale(.985)'},
-    {opacity:0,filter:'blur(10px)',transform:'scale(.96)'}
+  // Freeze the moving shirt exactly where it is during the crossfade.
+  const originalLeft=o.x;
+  const originalTop=o.y;
+  const originalBaseW=o.baseW;
+  const originalBaseH=o.baseH;
+  const originalSx=o.sx;
+  const originalSy=o.sy;
+
+  o.el.style.transformOrigin='50% 50%';
+  o.el.style.position='fixed';
+  o.el.style.left=r.left+'px';
+  o.el.style.top=r.top+'px';
+  o.el.style.width=r.width+'px';
+  o.el.style.height=r.height+'px';
+  o.el.style.transform='none';
+  o.el.style.zIndex='94';
+
+  // The incoming side sits exactly on top of the current shirt.
+  // Both images share the same center and dissolve at the same time.
+  const overlay=new Image();
+  overlay.src=nextSrc;
+  overlay.className='poster-object shirt shirt-dissolve';
+  overlay.draggable=false;
+  overlay.style.position='fixed';
+  overlay.style.left=r.left+'px';
+  overlay.style.top=r.top+'px';
+  overlay.style.width=r.width+'px';
+  overlay.style.height=r.height+'px';
+  overlay.style.transform='none';
+  overlay.style.transformOrigin='50% 50%';
+  overlay.style.opacity='0';
+  overlay.style.filter='blur(7px)';
+  overlay.style.pointerEvents='none';
+  overlay.style.zIndex='95';
+  document.body.appendChild(overlay);
+
+  const duration=520;
+  const easing='cubic-bezier(.4,0,.2,1)';
+
+  const fadeOut=o.el.animate([
+    {opacity:1,filter:'blur(0px)'},
+    {offset:.35,opacity:.72,filter:'blur(2px)'},
+    {offset:.68,opacity:.28,filter:'blur(5px)'},
+    {opacity:0,filter:'blur(8px)'}
   ],{
-    duration:210,
-    easing:'ease-in',
+    duration,
+    easing,
     fill:'forwards'
   });
 
-  out.finished.finally(()=>{
+  const fadeIn=overlay.animate([
+    {opacity:0,filter:'blur(8px)'},
+    {offset:.35,opacity:.28,filter:'blur(5px)'},
+    {offset:.68,opacity:.72,filter:'blur(2px)'},
+    {opacity:1,filter:'blur(0px)'}
+  ],{
+    duration,
+    easing,
+    fill:'forwards'
+  });
+
+  Promise.allSettled([fadeOut.finished,fadeIn.finished]).then(()=>{
     o.el.getAnimations().forEach(a=>a.cancel());
+    overlay.getAnimations().forEach(a=>a.cancel());
+
     o.el.src=nextSrc;
     o.spec.src=nextSrc;
     o.spec.shirtSide=next;
 
-    const incoming=o.el.animate([
-      {opacity:0,filter:'blur(10px)',transform:'scale(.96)'},
-      {opacity:.55,filter:'blur(4px)',transform:'scale(.985)'},
-      {opacity:1,filter:'blur(0px)',transform:'scale(1)'}
-    ],{
-      duration:230,
-      easing:'ease-out',
-      fill:'forwards'
-    });
+    // Restore the original moving object without changing its visual center.
+    o.el.style.position='absolute';
+    o.el.style.width=originalBaseW+'px';
+    o.el.style.height='auto';
+    o.el.style.left=originalLeft+'px';
+    o.el.style.top=originalTop+'px';
+    o.el.style.transformOrigin='50% 50%';
+    o.el.style.transform='scale('+originalSx+','+originalSy+')';
+    o.el.style.opacity='1';
+    o.el.style.filter='';
+    o.el.style.zIndex='';
 
-    incoming.finished.finally(()=>{
-      o.el.getAnimations().forEach(a=>a.cancel());
-      o.el.style.opacity='1';
-      o.el.style.filter='';
-      o.bursting=false;
-    });
+    o.baseW=originalBaseW;
+    o.baseH=originalBaseH;
+    o.x=originalLeft;
+    o.y=originalTop;
+    o.sx=originalSx;
+    o.sy=originalSy;
+
+    overlay.remove();
+    o.bursting=false;
+    apply(o);
   });
 }
 
@@ -599,7 +657,7 @@ function tick(now){
 
   if(idle){
     for(const o of objects){
-      if(globallyPaused) continue;
+      if(globallyPaused || o.bursting) continue;
 
       if(now>=o.nextStretch) chooseStretch(o,now);
 

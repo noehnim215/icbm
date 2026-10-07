@@ -33,7 +33,7 @@ const chosen=[
   ...specs,
   {id:'date',src:pick(DATE_POOL),kind:'date',min:130,max:.76,stretch:true},
   {id:'lineup',src:pick(LINEUP_POOL),kind:'lineup',min:150,max:.72,stretch:true},
-  {id:'rsvp',src:pick(RSVP_POOL),kind:'rsvp',min:120,max:.78,stretch:true,rsvpExtreme:true}
+  {id:'rsvp',src:pick(RSVP_POOL),kind:'rsvp',min:80,max:.56,stretch:true,rsvpExtreme:true}
 ];
 
 const powCount=Math.random()<.5?2:3;
@@ -128,7 +128,7 @@ function randomWidth(spec,naturalW,naturalH){
   }
 
   if(spec.rsvpExtreme){
-    const maxByViewport=Math.max(spec.min,Math.min(b.width*.82,b.height*aspect*.82));
+    const maxByViewport=Math.max(spec.min,Math.min(b.width*.58,b.height*aspect*.58));
     const minW=Math.min(spec.min,maxByViewport);
     return rand(minW,maxByViewport);
   }
@@ -238,8 +238,8 @@ function spawnNextRsvp(cx,cy,previousWidth,previousSrc){
   img.onload=()=>{
     const b=innerBounds();
     const baseW=Math.max(
-      window.innerWidth<=700?58:72,
-      previousWidth*rand(.62,.78)
+      window.innerWidth<=700?46:58,
+      previousWidth*rand(.56,.70)
     );
     const baseH=baseW*(img.naturalHeight/img.naturalWidth);
     const mobile=window.innerWidth<=700;
@@ -248,8 +248,8 @@ function spawnNextRsvp(cx,cy,previousWidth,previousSrc){
       id:'rsvp-'+Date.now(),
       src,
       kind:'rsvp',
-      min:58,
-      max:.78,
+      min:46,
+      max:.56,
       stretch:true,
       rsvpExtreme:true
     };

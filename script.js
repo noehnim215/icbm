@@ -36,6 +36,17 @@ const chosen=[
   {id:'rsvp',src:pick(RSVP_POOL),kind:'rsvp',min:80,max:.56,stretch:true,rsvpExtreme:true}
 ];
 
+if(Math.random()<.20){
+  chosen.push({
+    id:'missile',
+    src:'m.png',
+    kind:'missile',
+    min:90,
+    max:.38,
+    stretch:false
+  });
+}
+
 const powCount=Math.random()<.5?2:3;
 const powCandidates=shuffled(POW_POOL);
 if(Math.random()<.22) powCandidates.splice(Math.floor(Math.random()*(powCandidates.length+1)),0,POW_RARE);
@@ -110,6 +121,12 @@ function randomWidth(spec,naturalW,naturalH){
     if(compositionMode==='powLarge_textSmall') return widthInRange(.65,.98);
     if(compositionMode==='allSmall') return widthInRange(.10,.20);
     if(compositionMode==='powHugeBack_textTiny') return widthInRange(.60,1.00);
+  }
+
+  if(spec.kind==='missile'){
+    const maxByViewport=Math.min(b.width*.38,b.height*aspect*.55);
+    const minW=Math.min(Math.max(70,b.width*.08),maxByViewport);
+    return rand(minW,Math.max(minW,maxByViewport));
   }
 
   if(spec.mediumLarge){
@@ -350,8 +367,10 @@ function makeObject(spec){
         }
       }
       const mobile=window.innerWidth<=700;
-      const vx=(Math.random()<.5?-1:1)*rand(mobile?24:70,mobile?58:145);
-      const vy=(spec.kind==='pow'?1:(Math.random()<.5?-1:1))*rand(mobile?24:70,mobile?58:145);
+      const vx=(Math.random()<.5?-1:1)*(spec.kind==='missile'?rand(mobile?90:180,mobile?170:340):rand(mobile?24:70,mobile?58:145));
+      const vy=spec.kind==='missile'
+        ? (Math.random()<.5?-1:1)*rand(mobile?35:70,mobile?45:110)
+        : (spec.kind==='pow'?1:(Math.random()<.5?-1:1))*rand(mobile?24:70,mobile?58:145);
       const o={
         spec,el:img,
         baseW,baseH,
@@ -374,10 +393,89 @@ function makeObject(spec){
         });
       }
 
+      if(spec.kind==='boiler'){
+        img.addEventListener('pointerdown',e=>e.stopPropagation());
+        img.addEventListener('click',e=>{
+          e.stopPropagation();
+          transformBrainDeadToShirt(o);
+        });
+      }
+
       objects.push(o);
       resolve();
     };
   });
+}
+
+function transformBrainDeadToShirt(o){
+  if(o.bursting) return;
+  o.bursting=true;
+
+  const r=o.el.getBoundingClientRect();
+  const cx=r.left+r.width/2;
+  const cy=r.top+r.height/2;
+
+  const out=o.el.animate([
+    {opacity:1,transform:'scale(1)'},
+    {opacity:.2,transform:'scale(.45)',filter:'blur(2px)'},
+    {opacity:0,transform:'scale(.12)',filter:'blur(6px)'}
+  ],{duration:220,easing:'ease-in',fill:'forwards'});
+
+  out.finished.finally(()=>{
+    o.spec.kind='shirt';
+    o.spec.src='tshirts-1-f.png';
+    o.spec.stretch=false;
+    o.spec.shirtSide='front';
+    o.el.className='poster-object shirt';
+    o.el.src='tshirts-1-f.png';
+
+    o.el.onload=()=>{
+      const b=innerBounds();
+      const aspect=o.el.naturalWidth/o.el.naturalHeight;
+      const targetW=Math.min(b.width*rand(.28,.46),b.height*aspect*.72);
+      o.baseW=Math.max(150,targetW);
+      o.baseH=o.baseW*(o.el.naturalHeight/o.el.naturalWidth);
+      o.sx=o.sy=o.tx=o.ty=1;
+      o.x=clamp(cx-o.baseW/2,b.left,Math.max(b.left,b.right-o.baseW));
+      o.y=clamp(cy-o.baseH/2,b.top,Math.max(b.top,b.bottom-o.baseH));
+      apply(o);
+      o.el.getAnimations().forEach(a=>a.cancel());
+      o.el.animate([
+        {opacity:0,transform:'scale(.15)'},
+        {opacity:1,transform:'scale(1.08)'},
+        {opacity:1,transform:'scale(1)'}
+      ],{duration:320,easing:'cubic-bezier(.2,.9,.2,1)'});
+      o.bursting=false;
+    };
+
+    o.el.onpointerdown=e=>e.stopPropagation();
+    o.el.onclick=e=>{
+      e.stopPropagation();
+      toggleShirtSide(o);
+    };
+  });
+}
+
+function toggleShirtSide(o){
+  if(o.bursting) return;
+  o.bursting=true;
+
+  const next=o.spec.shirtSide==='front'?'back':'front';
+  const src=next==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
+
+  const flip=o.el.animate([
+    {opacity:1,transform:'scaleX(1)'},
+    {opacity:.08,transform:'scaleX(.06)'},
+    {opacity:1,transform:'scaleX(1)'}
+  ],{duration:280,easing:'ease-in-out'});
+
+  setTimeout(()=>{
+    o.el.src=src;
+    o.spec.src=src;
+    o.spec.shirtSide=next;
+  },140);
+
+  flip.finished.finally(()=>{o.bursting=false;});
 }
 
 function chooseStretch(o,now){

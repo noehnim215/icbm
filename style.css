@@ -147,7 +147,6 @@ body.composition-powHugeBack_textTiny .poster-object.lineup{z-index:10!important
 body.composition-powHugeBack_textTiny .poster-object.icbm{z-index:28!important}
 
 
-/* custom image cursor */
-html,body,#stage,.poster-object,*{
-  cursor:url("m.png") 20 8, auto!important;
-}
+
+.poster-object.shirt{z-index:26!important;cursor:pointer;}
+.poster-object.missile{z-index:17!important;pointer-events:none;}

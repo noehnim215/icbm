@@ -560,8 +560,9 @@ function dissolveShirtToggle(o){
   if(o.bursting) return;
   o.bursting=true;
 
-  const nextSide=o.spec.shirtSide==='front'?'back':'front';
-  const nextSrc=nextSide==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
+  const currentIsBack=o.el.src.includes('tshirts-1-b.png');
+  const nextSide=currentIsBack?'front':'back';
+  const nextSrc=currentIsBack?'tshirts-1-f.png':'tshirts-1-b.png';
 
   const incoming=new Image();
   incoming.src=nextSrc;
@@ -570,7 +571,6 @@ function dissolveShirtToggle(o){
   incoming.draggable=false;
 
   const begin=()=>{
-    // Match the current moving shirt exactly. Do not change its center, size, or scale.
     incoming.style.left=o.x+'px';
     incoming.style.top=o.y+'px';
     incoming.style.width=o.baseW+'px';
@@ -587,7 +587,6 @@ function dissolveShirtToggle(o){
     const duration=650;
     const easing='linear';
 
-    // Pure simultaneous crossfade, both directions.
     const out=o.el.animate(
       [{opacity:1},{opacity:0}],
       {duration,easing,fill:'forwards'}
@@ -604,6 +603,7 @@ function dissolveShirtToggle(o){
       o.el.src=nextSrc;
       o.spec.src=nextSrc;
       o.spec.shirtSide=nextSide;
+      o.el.dataset.shirtSide=nextSide;
       o.el.style.opacity='1';
       o.el.style.filter='none';
 

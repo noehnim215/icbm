@@ -145,3 +145,9 @@ body.composition-powHugeBack_textTiny .poster-object.pow{z-index:2!important}
 body.composition-powHugeBack_textTiny .poster-object.date,
 body.composition-powHugeBack_textTiny .poster-object.lineup{z-index:10!important}
 body.composition-powHugeBack_textTiny .poster-object.icbm{z-index:28!important}
+
+
+/* custom image cursor */
+html,body,#stage,.poster-object,*{
+  cursor:url("cursor.png") 4 4, auto!important;
+}

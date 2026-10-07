@@ -148,7 +148,10 @@ body.composition-powHugeBack_textTiny .poster-object.icbm{z-index:28!important}
 
 
 
-.poster-object.shirt{z-index:26!important;cursor:pointer;}
+.poster-object.shirt{z-index:26!important;cursor:pointer;transform-origin:50% 50%!important;animation:none!important;transition:none!important;}
 
-.poster-object.shirt{transform-origin:50% 50%!important;}
+.poster-object.shirt{z-index:26!important;cursor:pointer;transform-origin:50% 50%!important;animation:none!important;transition:none!important;}
+.poster-object.other{cursor:pointer;}
+
+.shirt-crossfade{animation:none!important;transition:none!important;filter:none!important;}
 .poster-object.other{cursor:pointer;}

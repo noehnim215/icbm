@@ -6,7 +6,7 @@ const POW_POOL=['BLUE-NEW-PEW. 2png','BLUE-NEW-PEW.png','GREEN-NEW-PEW-2.png','G
 const POW_RARE='RED-NEW-PEW2.png';
 const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsvp6.png','rsvp7.png'];
 const RSVP_POW_POOL=['BLUE-NEW-PEW.png','YELLOW-NEW-PEW2.png'];
-const OTHER_SEQUENCE=['OTHER2.png','OTHER3.png','OTHER4.png','OTHER5.png','OTHER6.png'];
+const OTHER_SEQUENCE=['OTHER.png','OTHER2.png','OTHER3.png','OTHER4.png','OTHER5.png','OTHER6.png'];
 const OTHER_PRELOAD=OTHER_SEQUENCE.map(src=>{const img=new Image();img.src=src;return img;});
 
 const specs=[
@@ -117,11 +117,16 @@ function randomWidth(spec,naturalW,naturalH){
   }
 
   if(spec.kind==='other'){
-    const maxByViewport=Math.min(b.width*.48,b.height*aspect*.72);
-    const minByViewport=Math.min(Math.max(70,b.width*.08),maxByViewport);
-    const t=Math.pow(Math.random(),.8);
-    return minByViewport+(maxByViewport-minByViewport)*t;
-  }
+        img.addEventListener('pointerdown',e=>{
+          e.stopPropagation();
+          e.preventDefault();
+          playOtherSequence(o);
+        });
+        img.addEventListener('click',e=>{
+          e.stopPropagation();
+          e.preventDefault();
+        });
+      }
 
   if(spec.mediumLarge){
     const minW=Math.min(b.width*.46,Math.max(300,spec.min));
@@ -420,9 +425,9 @@ function playOtherSequence(o){
   if(idx>=0) objects.splice(idx,1);
 
   const r=o.el.getBoundingClientRect();
-
-  // Lock the exact clicked visual box before changing the source.
   o.el.getAnimations().forEach(a=>a.cancel());
+
+  // Lock the exact visual box. From here on, only the image source changes.
   Object.assign(o.el.style,{
     position:'fixed',
     left:r.left+'px',
@@ -437,36 +442,38 @@ function playOtherSequence(o){
     pointerEvents:'none'
   });
 
-  const frames=['OTHER2.png','OTHER3.png','OTHER4.png','OTHER5.png','OTHER6.png'];
-  let frame=0;
+  const frames=['OTHER.png','OTHER2.png','OTHER3.png','OTHER4.png','OTHER5.png','OTHER6.png'];
+  let i=0;
 
-  // Change to OTHER2 on the very same pointer-down.
-  o.el.src=frames[0];
-  frame=1;
+  // Start from OTHER immediately on click, then advance once per second.
+  o.el.src=frames[i];
 
-  const nextFrame=()=>{
-    if(frame<frames.length){
-      o.el.src=frames[frame];
-      frame+=1;
-      setTimeout(nextFrame,1000);
+  const advance=()=>{
+    i+=1;
+
+    if(i<frames.length){
+      o.el.src=frames[i];
+      setTimeout(advance,1000);
       return;
     }
 
-    // OTHER6 has stayed for one second: now disappear in place.
-    o.el.animate([
+    // OTHER6 has already been visible for one full second at this point.
+    const vanish=o.el.animate([
       {opacity:1,filter:'blur(0px) contrast(1)'},
-      {opacity:.7,filter:'blur(2px) contrast(1.35)'},
-      {opacity:.38,filter:'blur(6px) contrast(1.8)'},
-      {opacity:.12,filter:'blur(12px) contrast(2.4)'},
-      {opacity:0,filter:'blur(20px) contrast(3)'}
+      {opacity:.72,filter:'blur(2px) contrast(1.25)'},
+      {opacity:.38,filter:'blur(6px) contrast(1.7)'},
+      {opacity:.14,filter:'blur(12px) contrast(2.2)'},
+      {opacity:0,filter:'blur(18px) contrast(2.8)'}
     ],{
       duration:650,
       easing:'ease-in',
       fill:'forwards'
-    }).finished.finally(()=>o.el.remove());
+    });
+
+    vanish.finished.finally(()=>o.el.remove());
   };
 
-  setTimeout(nextFrame,1000);
+  setTimeout(advance,1000);
 }
 
 function transformBrainDeadToShirt(o){
@@ -482,20 +489,24 @@ function transformBrainDeadToShirt(o){
   const idx=objects.indexOf(o);
   if(idx>=0) objects.splice(idx,1);
 
-  // Move the clicked logo to the center first so no second effect appears at its old spot.
-  o.el.style.position='fixed';
-  o.el.style.left=(cx-r.width/2)+'px';
-  o.el.style.top=(cy-r.height/2)+'px';
-  o.el.style.width=r.width+'px';
-  o.el.style.height=r.height+'px';
-  o.el.style.transform='none';
-  o.el.style.transformOrigin='50% 50%';
-  o.el.style.zIndex='90';
+  o.el.getAnimations().forEach(a=>a.cancel());
 
-  // Spawn shirt front from the same centered position.
+  // Lock the clicked Brain Dead logo exactly where it is.
+  Object.assign(o.el.style,{
+    position:'fixed',
+    left:r.left+'px',
+    top:r.top+'px',
+    width:r.width+'px',
+    height:r.height+'px',
+    transform:'none',
+    transformOrigin:'50% 50%',
+    zIndex:'90'
+  });
+
+  // Shirt front grows from the LOGO CENTER.
   spawnBrainDeadShirt(cx,cy,r.width);
 
-  // RSVP-style compression / flash / snap-out.
+  // Keep the RSVP-style logo burst only for logo -> shirt.
   const animation=o.el.animate([
     {opacity:1,transform:'scale(1,1)',filter:'brightness(1) blur(0px)'},
     {offset:.22,opacity:1,transform:'scale(1.18,.72)',filter:'brightness(1.5) blur(0px)'},
@@ -511,8 +522,6 @@ function transformBrainDeadToShirt(o){
 
   animation.finished.finally(()=>{
     o.el.remove();
-
-    // Brain Dead logo comes back as a new moving object.
     makeObject({...logoSpec,id:'boiler-'+Date.now(),src:logoSrc,kind:'boiler',always:true})
       .catch(()=>{});
   });
@@ -558,16 +567,13 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
     objects.push(shirt);
     apply(shirt);
 
+    // Scale around the shirt's own center without changing its x/y every frame.
     const start=performance.now();
     const pop=now=>{
       const t=Math.min(1,(now-start)/260);
       const eased=1-Math.pow(1-t,3);
       shirt.sx=.18+(.82*eased);
       shirt.sy=.18+(.82*eased);
-
-      shirt.x=clamp(cx-shirt.baseW/2,b.left,Math.max(b.left,b.right-shirt.baseW));
-      shirt.y=clamp(cy-shirt.baseH/2,b.top,Math.max(b.top,b.bottom-shirt.baseH));
-
       apply(shirt);
       if(t<1) requestAnimationFrame(pop);
     };
@@ -584,13 +590,17 @@ function dissolveShirtToggle(o){
   const r=o.el.getBoundingClientRect();
 
   const original={
-    x:o.x,y:o.y,
-    baseW:o.baseW,baseH:o.baseH,
-    sx:o.sx,sy:o.sy
+    x:o.x,
+    y:o.y,
+    baseW:o.baseW,
+    baseH:o.baseH,
+    sx:o.sx,
+    sy:o.sy
   };
 
-  // Freeze current shirt exactly where it is.
   o.el.getAnimations().forEach(a=>a.cancel());
+
+  // Freeze the current shirt exactly where it is on screen.
   Object.assign(o.el.style,{
     position:'fixed',
     left:r.left+'px',
@@ -610,7 +620,7 @@ function dissolveShirtToggle(o){
   incoming.className='poster-object shirt shirt-crossfade';
   incoming.draggable=false;
 
-  const beginCrossfade=()=>{
+  const startCrossfade=()=>{
     Object.assign(incoming.style,{
       position:'fixed',
       left:r.left+'px',
@@ -627,19 +637,21 @@ function dissolveShirtToggle(o){
 
     document.body.appendChild(incoming);
 
+    // PURE crossfade: opacity only, both directions.
     const duration=650;
-    const easing='cubic-bezier(.4,0,.2,1)';
+    const easing='linear';
 
     const out=o.el.animate(
       [{opacity:1},{opacity:0}],
       {duration,easing,fill:'forwards'}
     );
-    const into=incoming.animate(
+
+    const inn=incoming.animate(
       [{opacity:0},{opacity:1}],
       {duration,easing,fill:'forwards'}
     );
 
-    Promise.allSettled([out.finished,into.finished]).then(()=>{
+    Promise.allSettled([out.finished,inn.finished]).then(()=>{
       o.el.getAnimations().forEach(a=>a.cancel());
       incoming.getAnimations().forEach(a=>a.cancel());
 
@@ -647,6 +659,7 @@ function dissolveShirtToggle(o){
       o.spec.src=nextSrc;
       o.spec.shirtSide=nextSide;
 
+      // Restore the same moving object with no secondary animation.
       Object.assign(o.el.style,{
         position:'absolute',
         left:original.x+'px',
@@ -674,12 +687,10 @@ function dissolveShirtToggle(o){
   };
 
   if(incoming.complete && incoming.naturalWidth){
-    beginCrossfade();
+    startCrossfade();
   }else{
-    incoming.onload=beginCrossfade;
-    incoming.onerror=()=>{
-      o.bursting=false;
-    };
+    incoming.onload=startCrossfade;
+    incoming.onerror=()=>{o.bursting=false;};
   }
 }
 

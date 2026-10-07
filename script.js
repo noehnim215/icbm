@@ -528,7 +528,8 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
       y:clamp(cy-baseH/2,b.top,Math.max(b.top,b.bottom-baseH)),
       vx:(Math.random()<.5?-1:1)*rand(mobile?24:70,mobile?58:145),
       vy:(Math.random()<.5?-1:1)*rand(mobile?24:70,mobile?58:145),
-      sx:.18,sy:.18,tx:1,ty:1,bursting:false,
+      sx:1,sy:1,tx:1,ty:1,
+      bursting:false,
       nextStretch:performance.now()+999999
     };
 
@@ -541,18 +542,6 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
     stage.appendChild(img);
     objects.push(shirt);
     apply(shirt);
-
-    // Scale around the shirt's own center without changing its x/y every frame.
-    const start=performance.now();
-    const pop=now=>{
-      const t=Math.min(1,(now-start)/260);
-      const eased=1-Math.pow(1-t,3);
-      shirt.sx=.18+(.82*eased);
-      shirt.sy=.18+(.82*eased);
-      apply(shirt);
-      if(t<1) requestAnimationFrame(pop);
-    };
-    requestAnimationFrame(pop);
   };
 }
 
@@ -563,6 +552,14 @@ function dissolveShirtToggle(o){
   const currentIsBack=o.el.src.includes('tshirts-1-b.png');
   const nextSide=currentIsBack?'front':'back';
   const nextSrc=currentIsBack?'tshirts-1-f.png':'tshirts-1-b.png';
+
+  // Kill any leftover scale state. Front/back is opacity-only.
+  o.sx=1;
+  o.sy=1;
+  o.tx=1;
+  o.ty=1;
+  o.el.getAnimations().forEach(a=>a.cancel());
+  apply(o);
 
   const incoming=new Image();
   incoming.src=nextSrc;
@@ -575,7 +572,7 @@ function dissolveShirtToggle(o){
     incoming.style.top=o.y+'px';
     incoming.style.width=o.baseW+'px';
     incoming.style.height='auto';
-    incoming.style.transform='scale('+o.sx+','+o.sy+')';
+    incoming.style.transform='scale(1,1)';
     incoming.style.transformOrigin='50% 50%';
     incoming.style.opacity='0';
     incoming.style.filter='none';
@@ -587,6 +584,7 @@ function dissolveShirtToggle(o){
     const duration=650;
     const easing='linear';
 
+    // Only opacity changes. No scale, blur, flash, movement, or second entrance.
     const out=o.el.animate(
       [{opacity:1},{opacity:0}],
       {duration,easing,fill:'forwards'}
@@ -603,9 +601,13 @@ function dissolveShirtToggle(o){
       o.el.src=nextSrc;
       o.spec.src=nextSrc;
       o.spec.shirtSide=nextSide;
-      o.el.dataset.shirtSide=nextSide;
       o.el.style.opacity='1';
       o.el.style.filter='none';
+
+      o.sx=1;
+      o.sy=1;
+      o.tx=1;
+      o.ty=1;
 
       incoming.remove();
       o.bursting=false;

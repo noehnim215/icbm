@@ -288,8 +288,9 @@ function explodeRsvp(o){
   o.bursting=true;
 
   const r=o.el.getBoundingClientRect();
-  const cx=r.left+r.width/2;
-  const cy=r.top+r.height/2;
+  const b=innerBounds();
+  const cx=b.left+b.width/2;
+  const cy=b.top+b.height/2;
   const previousWidth=Math.max(1,r.width);
   const previousSrc=o.spec.src;
 
@@ -504,11 +505,11 @@ function dissolveShirtToBack(o){
   o.bursting=true;
 
   const next=o.spec.shirtSide==='front'?'back':'front';
-  const nextSrc=next==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
+  const src=next==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
   const r=o.el.getBoundingClientRect();
 
   const overlay=new Image();
-  overlay.src=nextSrc;
+  overlay.src=src;
   overlay.className='poster-object shirt shirt-dissolve';
   overlay.style.position='fixed';
   overlay.style.left=r.left+'px';
@@ -518,25 +519,24 @@ function dissolveShirtToBack(o){
   overlay.style.opacity='0';
   overlay.style.zIndex='95';
   overlay.style.pointerEvents='none';
-  overlay.style.transformOrigin='50% 50%';
   document.body.appendChild(overlay);
 
   const fadeOut=o.el.animate([
-    {opacity:1,filter:'blur(0px)',transform:'scale(1)'},
-    {opacity:.45,filter:'blur(3px)',transform:'scale(.98)'},
-    {opacity:0,filter:'blur(8px)',transform:'scale(.94)'}
+    {opacity:1,filter:'blur(0px)'},
+    {opacity:.45,filter:'blur(3px)'},
+    {opacity:0,filter:'blur(8px)'}
   ],{duration:420,easing:'ease-in-out',fill:'forwards'});
 
   const fadeIn=overlay.animate([
-    {opacity:0,filter:'blur(8px)',transform:'scale(.94)'},
-    {opacity:.55,filter:'blur(3px)',transform:'scale(.98)'},
-    {opacity:1,filter:'blur(0px)',transform:'scale(1)'}
+    {opacity:0,filter:'blur(8px)'},
+    {opacity:.55,filter:'blur(3px)'},
+    {opacity:1,filter:'blur(0px)'}
   ],{duration:420,easing:'ease-in-out',fill:'forwards'});
 
   Promise.allSettled([fadeOut.finished,fadeIn.finished]).then(()=>{
     o.el.getAnimations().forEach(a=>a.cancel());
-    o.el.src=nextSrc;
-    o.spec.src=nextSrc;
+    o.el.src=src;
+    o.spec.src=src;
     o.spec.shirtSide=next;
     o.el.style.opacity='1';
     o.el.style.filter='';

@@ -414,7 +414,9 @@ function playOtherSequence(o){
   const idx=objects.indexOf(o);
   if(idx>=0) objects.splice(idx,1);
 
+  // Freeze the OTHER graphic exactly where it was clicked.
   const r=o.el.getBoundingClientRect();
+  o.el.getAnimations().forEach(a=>a.cancel());
   o.el.style.position='fixed';
   o.el.style.left=r.left+'px';
   o.el.style.top=r.top+'px';
@@ -424,39 +426,56 @@ function playOtherSequence(o){
   o.el.style.transformOrigin='50% 50%';
   o.el.style.zIndex='92';
   o.el.style.pointerEvents='none';
+  o.el.style.opacity='1';
+  o.el.style.filter='none';
 
   let step=0;
 
-  const showNext=()=>{
+  const advance=()=>{
     if(step>=OTHER_SEQUENCE.length){
+      // After OTHER6 has stayed for 1 second, dissolve/noise away in place.
       const noisy=o.el.animate([
-        {opacity:1,filter:'blur(0px) contrast(1) saturate(1)',transform:'translate(0,0) scale(1)'},
-        {offset:.18,opacity:.9,filter:'blur(1px) contrast(1.8) saturate(.2)',transform:'translate(-2px,1px) scale(1.01)'},
-        {offset:.36,opacity:.72,filter:'blur(3px) contrast(2.4) saturate(0)',transform:'translate(3px,-2px) scale(.99)'},
-        {offset:.55,opacity:.48,filter:'blur(6px) contrast(2.8) saturate(0)',transform:'translate(-3px,2px) scale(1.015)'},
-        {offset:.76,opacity:.24,filter:'blur(10px) contrast(3.2) saturate(0)',transform:'translate(2px,-1px) scale(.98)'},
-        {opacity:0,filter:'blur(18px) contrast(3.8) saturate(0)',transform:'translate(0,0) scale(.94)'}
+        {opacity:1,filter:'blur(0px) contrast(1)'},
+        {opacity:.75,filter:'blur(2px) contrast(1.5)'},
+        {opacity:.45,filter:'blur(5px) contrast(2)'},
+        {opacity:.18,filter:'blur(10px) contrast(2.6)'},
+        {opacity:0,filter:'blur(18px) contrast(3.2)'}
       ],{
-        duration:700,
-        easing:'steps(6,end)',
+        duration:650,
+        easing:'ease-in',
         fill:'forwards'
       });
-
       noisy.finished.finally(()=>o.el.remove());
       return;
     }
 
-    const nextSrc=OTHER_SEQUENCE[step++];
-    const preload=new Image();
-    preload.src=nextSrc;
-    preload.onload=()=>{
-      o.el.src=nextSrc;
-      setTimeout(showNext,1000);
+    const src=OTHER_SEQUENCE[step++];
+    const pre=new Image();
+    pre.src=src;
+    pre.onload=()=>{
+      o.el.src=src;
+      setTimeout(advance,1000);
     };
-    preload.onerror=()=>setTimeout(showNext,1000);
+    pre.onerror=()=>{
+      o.el.src=src;
+      setTimeout(advance,1000);
+    };
   };
 
-  showNext();
+  // Start immediately with OTHER2 on click.
+  const first=OTHER_SEQUENCE[0];
+  const firstPre=new Image();
+  firstPre.src=first;
+  firstPre.onload=()=>{
+    o.el.src=first;
+    step=1;
+    setTimeout(advance,1000);
+  };
+  firstPre.onerror=()=>{
+    o.el.src=first;
+    step=1;
+    setTimeout(advance,1000);
+  };
 }
 
 function transformBrainDeadToShirt(o){

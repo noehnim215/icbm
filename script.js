@@ -396,8 +396,8 @@ function transformBrainDeadToShirt(o){
   o.bursting=true;
 
   const r=o.el.getBoundingClientRect();
-  const cx=r.left+r.width/2;
-  const cy=r.top+r.height/2;
+  const cx=window.innerWidth/2;
+  const cy=window.innerHeight/2;
   const logoSrc=o.spec.src;
   const logoSpec={...o.spec};
 
@@ -446,7 +446,6 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
   img.alt='shirt';
   img.className='poster-object shirt';
   img.draggable=false;
-  img.style.transformOrigin='50% 50%';
   img.style.transformOrigin='50% 50%';
 
   img.onload=()=>{
@@ -500,48 +499,45 @@ function spawnBrainDeadShirt(cx,cy,sourceWidth){
   };
 }
 
-function dissolveShirtToBack(o){
+function dissolveShirtToggle(o){
   if(o.bursting) return;
   o.bursting=true;
 
   const next=o.spec.shirtSide==='front'?'back':'front';
-  const src=next==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
-  const r=o.el.getBoundingClientRect();
+  const nextSrc=next==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
 
-  const overlay=new Image();
-  overlay.src=src;
-  overlay.className='poster-object shirt shirt-dissolve';
-  overlay.style.position='fixed';
-  overlay.style.left=r.left+'px';
-  overlay.style.top=r.top+'px';
-  overlay.style.width=r.width+'px';
-  overlay.style.height=r.height+'px';
-  overlay.style.opacity='0';
-  overlay.style.zIndex='95';
-  overlay.style.pointerEvents='none';
-  document.body.appendChild(overlay);
+  const out=o.el.animate([
+    {opacity:1,filter:'blur(0px)',transform:'scale(1)'},
+    {opacity:.45,filter:'blur(4px)',transform:'scale(.985)'},
+    {opacity:0,filter:'blur(10px)',transform:'scale(.96)'}
+  ],{
+    duration:210,
+    easing:'ease-in',
+    fill:'forwards'
+  });
 
-  const fadeOut=o.el.animate([
-    {opacity:1,filter:'blur(0px)'},
-    {opacity:.45,filter:'blur(3px)'},
-    {opacity:0,filter:'blur(8px)'}
-  ],{duration:420,easing:'ease-in-out',fill:'forwards'});
-
-  const fadeIn=overlay.animate([
-    {opacity:0,filter:'blur(8px)'},
-    {opacity:.55,filter:'blur(3px)'},
-    {opacity:1,filter:'blur(0px)'}
-  ],{duration:420,easing:'ease-in-out',fill:'forwards'});
-
-  Promise.allSettled([fadeOut.finished,fadeIn.finished]).then(()=>{
+  out.finished.finally(()=>{
     o.el.getAnimations().forEach(a=>a.cancel());
-    o.el.src=src;
-    o.spec.src=src;
+    o.el.src=nextSrc;
+    o.spec.src=nextSrc;
     o.spec.shirtSide=next;
-    o.el.style.opacity='1';
-    o.el.style.filter='';
-    overlay.remove();
-    o.bursting=false;
+
+    const incoming=o.el.animate([
+      {opacity:0,filter:'blur(10px)',transform:'scale(.96)'},
+      {opacity:.55,filter:'blur(4px)',transform:'scale(.985)'},
+      {opacity:1,filter:'blur(0px)',transform:'scale(1)'}
+    ],{
+      duration:230,
+      easing:'ease-out',
+      fill:'forwards'
+    });
+
+    incoming.finished.finally(()=>{
+      o.el.getAnimations().forEach(a=>a.cancel());
+      o.el.style.opacity='1';
+      o.el.style.filter='';
+      o.bursting=false;
+    });
   });
 }
 

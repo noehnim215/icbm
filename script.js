@@ -571,100 +571,103 @@ function dissolveShirtToggle(o){
 
   const next=o.spec.shirtSide==='front'?'back':'front';
   const nextSrc=next==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
-  const r=o.el.getBoundingClientRect();
 
-  // Freeze the moving shirt exactly where it is during the crossfade.
-  const originalLeft=o.x;
-  const originalTop=o.y;
-  const originalBaseW=o.baseW;
-  const originalBaseH=o.baseH;
-  const originalSx=o.sx;
-  const originalSy=o.sy;
+  const preload=new Image();
+  preload.src=nextSrc;
 
-  o.el.style.transformOrigin='50% 50%';
-  o.el.style.position='fixed';
-  o.el.style.left=r.left+'px';
-  o.el.style.top=r.top+'px';
-  o.el.style.width=r.width+'px';
-  o.el.style.height=r.height+'px';
-  o.el.style.transform='none';
-  o.el.style.zIndex='94';
+  preload.onload=()=>{
+    const r=o.el.getBoundingClientRect();
 
-  // The incoming side sits exactly on top of the current shirt.
-  // Both images share the same center and dissolve at the same time.
-  const overlay=new Image();
-  overlay.src=nextSrc;
-  overlay.className='poster-object shirt shirt-dissolve';
-  overlay.draggable=false;
-  overlay.style.position='fixed';
-  overlay.style.left=r.left+'px';
-  overlay.style.top=r.top+'px';
-  overlay.style.width=r.width+'px';
-  overlay.style.height=r.height+'px';
-  overlay.style.transform='none';
-  overlay.style.transformOrigin='50% 50%';
-  overlay.style.opacity='0';
-  overlay.style.filter='blur(7px)';
-  overlay.style.pointerEvents='none';
-  overlay.style.zIndex='95';
-  document.body.appendChild(overlay);
+    // Keep the moving shirt visually frozen exactly where it is.
+    const original={
+      x:o.x,
+      y:o.y,
+      baseW:o.baseW,
+      baseH:o.baseH,
+      sx:o.sx,
+      sy:o.sy
+    };
 
-  const duration=520;
-  const easing='cubic-bezier(.4,0,.2,1)';
-
-  const fadeOut=o.el.animate([
-    {opacity:1,filter:'blur(0px)'},
-    {offset:.35,opacity:.72,filter:'blur(2px)'},
-    {offset:.68,opacity:.28,filter:'blur(5px)'},
-    {opacity:0,filter:'blur(8px)'}
-  ],{
-    duration,
-    easing,
-    fill:'forwards'
-  });
-
-  const fadeIn=overlay.animate([
-    {opacity:0,filter:'blur(8px)'},
-    {offset:.35,opacity:.28,filter:'blur(5px)'},
-    {offset:.68,opacity:.72,filter:'blur(2px)'},
-    {opacity:1,filter:'blur(0px)'}
-  ],{
-    duration,
-    easing,
-    fill:'forwards'
-  });
-
-  Promise.allSettled([fadeOut.finished,fadeIn.finished]).then(()=>{
-    o.el.getAnimations().forEach(a=>a.cancel());
-    overlay.getAnimations().forEach(a=>a.cancel());
-
-    o.el.src=nextSrc;
-    o.spec.src=nextSrc;
-    o.spec.shirtSide=next;
-
-    // Restore the original moving object without changing its visual center.
-    o.el.style.position='absolute';
-    o.el.style.width=originalBaseW+'px';
-    o.el.style.height='auto';
-    o.el.style.left=originalLeft+'px';
-    o.el.style.top=originalTop+'px';
+    o.el.style.position='fixed';
+    o.el.style.left=r.left+'px';
+    o.el.style.top=r.top+'px';
+    o.el.style.width=r.width+'px';
+    o.el.style.height=r.height+'px';
+    o.el.style.transform='none';
     o.el.style.transformOrigin='50% 50%';
-    o.el.style.transform='scale('+originalSx+','+originalSy+')';
     o.el.style.opacity='1';
-    o.el.style.filter='';
-    o.el.style.zIndex='';
+    o.el.style.filter='none';
+    o.el.style.zIndex='94';
 
-    o.baseW=originalBaseW;
-    o.baseH=originalBaseH;
-    o.x=originalLeft;
-    o.y=originalTop;
-    o.sx=originalSx;
-    o.sy=originalSy;
+    // Incoming side is placed on the exact same visual box.
+    const overlay=new Image();
+    overlay.src=nextSrc;
+    overlay.alt='shirt';
+    overlay.className='poster-object shirt shirt-crossfade';
+    overlay.draggable=false;
+    overlay.style.position='fixed';
+    overlay.style.left=r.left+'px';
+    overlay.style.top=r.top+'px';
+    overlay.style.width=r.width+'px';
+    overlay.style.height=r.height+'px';
+    overlay.style.transform='none';
+    overlay.style.transformOrigin='50% 50%';
+    overlay.style.opacity='0';
+    overlay.style.filter='none';
+    overlay.style.pointerEvents='none';
+    overlay.style.zIndex='95';
+    document.body.appendChild(overlay);
 
-    overlay.remove();
+    // Crossfade ONLY: no blur, no scale, no flash.
+    const duration=600;
+    const easing='cubic-bezier(.4,0,.2,1)';
+
+    const fadeOut=o.el.animate(
+      [{opacity:1},{opacity:0}],
+      {duration,easing,fill:'forwards'}
+    );
+
+    const fadeIn=overlay.animate(
+      [{opacity:0},{opacity:1}],
+      {duration,easing,fill:'forwards'}
+    );
+
+    Promise.allSettled([fadeOut.finished,fadeIn.finished]).then(()=>{
+      o.el.getAnimations().forEach(a=>a.cancel());
+      overlay.getAnimations().forEach(a=>a.cancel());
+
+      o.el.src=nextSrc;
+      o.spec.src=nextSrc;
+      o.spec.shirtSide=next;
+
+      // Restore the same moving shirt object after the crossfade.
+      o.el.style.position='absolute';
+      o.el.style.width=original.baseW+'px';
+      o.el.style.height='auto';
+      o.el.style.left=original.x+'px';
+      o.el.style.top=original.y+'px';
+      o.el.style.transformOrigin='50% 50%';
+      o.el.style.transform='scale('+original.sx+','+original.sy+')';
+      o.el.style.opacity='1';
+      o.el.style.filter='none';
+      o.el.style.zIndex='';
+
+      o.x=original.x;
+      o.y=original.y;
+      o.baseW=original.baseW;
+      o.baseH=original.baseH;
+      o.sx=original.sx;
+      o.sy=original.sy;
+
+      overlay.remove();
+      o.bursting=false;
+      apply(o);
+    });
+  };
+
+  preload.onerror=()=>{
     o.bursting=false;
-    apply(o);
-  });
+  };
 }
 
 function chooseStretch(o,now){

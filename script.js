@@ -421,43 +421,24 @@ function playOtherSequence(o){
   if(o.bursting) return;
   o.bursting=true;
 
+  // Stop this object in its exact current position. Do not recreate or reposition it.
   const idx=objects.indexOf(o);
   if(idx>=0) objects.splice(idx,1);
-
-  const r=o.el.getBoundingClientRect();
   o.el.getAnimations().forEach(a=>a.cancel());
-
-  // Lock the exact visual box. From here on, only the image source changes.
-  Object.assign(o.el.style,{
-    position:'fixed',
-    left:r.left+'px',
-    top:r.top+'px',
-    width:r.width+'px',
-    height:r.height+'px',
-    transform:'none',
-    transformOrigin:'50% 50%',
-    opacity:'1',
-    filter:'none',
-    zIndex:'92',
-    pointerEvents:'none'
-  });
+  o.el.style.pointerEvents='none';
 
   const frames=['OTHER.png','OTHER2.png','OTHER3.png','OTHER4.png','OTHER5.png','OTHER6.png'];
   let i=0;
-
-  // Start from OTHER immediately on click, then advance once per second.
-  o.el.src=frames[i];
+  o.el.src=frames[0];
 
   const advance=()=>{
     i+=1;
-
     if(i<frames.length){
       o.el.src=frames[i];
       setTimeout(advance,1000);
       return;
     }
 
-    // OTHER6 has already been visible for one full second at this point.
     const vanish=o.el.animate([
       {opacity:1,filter:'blur(0px) contrast(1)'},
       {opacity:.72,filter:'blur(2px) contrast(1.25)'},
@@ -469,7 +450,6 @@ function playOtherSequence(o){
       easing:'ease-in',
       fill:'forwards'
     });
-
     vanish.finished.finally(()=>o.el.remove());
   };
 
@@ -587,65 +567,36 @@ function dissolveShirtToggle(o){
 
   const nextSide=o.spec.shirtSide==='front'?'back':'front';
   const nextSrc=nextSide==='front'?'tshirts-1-f.png':'tshirts-1-b.png';
-  const r=o.el.getBoundingClientRect();
 
-  const original={
-    x:o.x,
-    y:o.y,
-    baseW:o.baseW,
-    baseH:o.baseH,
-    sx:o.sx,
-    sy:o.sy
-  };
-
-  o.el.getAnimations().forEach(a=>a.cancel());
-
-  // Freeze the current shirt exactly where it is on screen.
-  Object.assign(o.el.style,{
-    position:'fixed',
-    left:r.left+'px',
-    top:r.top+'px',
-    width:r.width+'px',
-    height:r.height+'px',
-    transform:'none',
-    transformOrigin:'50% 50%',
-    opacity:'1',
-    filter:'none',
-    zIndex:'94'
-  });
-
+  // Freeze motion while crossfading. Do not alter x/y/size/scale.
   const incoming=new Image();
   incoming.src=nextSrc;
   incoming.alt='shirt';
   incoming.className='poster-object shirt shirt-crossfade';
   incoming.draggable=false;
 
-  const startCrossfade=()=>{
-    Object.assign(incoming.style,{
-      position:'fixed',
-      left:r.left+'px',
-      top:r.top+'px',
-      width:r.width+'px',
-      height:r.height+'px',
-      transform:'none',
-      transformOrigin:'50% 50%',
-      opacity:'0',
-      filter:'none',
-      pointerEvents:'none',
-      zIndex:'95'
-    });
+  const begin=()=>{
+    incoming.style.left=o.x+'px';
+    incoming.style.top=o.y+'px';
+    incoming.style.width=o.baseW+'px';
+    incoming.style.height='auto';
+    incoming.style.transform='scale('+o.sx+','+o.sy+')';
+    incoming.style.transformOrigin='50% 50%';
+    incoming.style.opacity='0';
+    incoming.style.filter='none';
+    incoming.style.pointerEvents='none';
+    incoming.style.zIndex='27';
 
-    document.body.appendChild(incoming);
+    stage.appendChild(incoming);
 
-    // PURE crossfade: opacity only, both directions.
     const duration=650;
     const easing='linear';
 
+    // CROSSFADE ONLY: opacity changes, nothing else.
     const out=o.el.animate(
       [{opacity:1},{opacity:0}],
       {duration,easing,fill:'forwards'}
     );
-
     const inn=incoming.animate(
       [{opacity:0},{opacity:1}],
       {duration,easing,fill:'forwards'}
@@ -658,27 +609,8 @@ function dissolveShirtToggle(o){
       o.el.src=nextSrc;
       o.spec.src=nextSrc;
       o.spec.shirtSide=nextSide;
-
-      // Restore the same moving object with no secondary animation.
-      Object.assign(o.el.style,{
-        position:'absolute',
-        left:original.x+'px',
-        top:original.y+'px',
-        width:original.baseW+'px',
-        height:'auto',
-        transform:'scale('+original.sx+','+original.sy+')',
-        transformOrigin:'50% 50%',
-        opacity:'1',
-        filter:'none',
-        zIndex:''
-      });
-
-      o.x=original.x;
-      o.y=original.y;
-      o.baseW=original.baseW;
-      o.baseH=original.baseH;
-      o.sx=original.sx;
-      o.sy=original.sy;
+      o.el.style.opacity='1';
+      o.el.style.filter='none';
 
       incoming.remove();
       o.bursting=false;
@@ -687,9 +619,9 @@ function dissolveShirtToggle(o){
   };
 
   if(incoming.complete && incoming.naturalWidth){
-    startCrossfade();
+    begin();
   }else{
-    incoming.onload=startCrossfade;
+    incoming.onload=begin;
     incoming.onerror=()=>{o.bursting=false;};
   }
 }

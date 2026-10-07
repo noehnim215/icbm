@@ -8,7 +8,7 @@ const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsv
 const RSVP_POW_POOL=['BLUE-NEW-PEW.png','YELLOW-NEW-PEW2.png'];
 
 const specs=[
-  {id:'icbm',src:'icbm.png',kind:'icbm',always:true,min:380,max:.88,stretch:false,mediumLarge:true},
+  {id:'icbm',src:'icbm-spray.png',kind:'icbm',always:true,min:380,max:.88,stretch:false,mediumLarge:true},
   {id:'boiler',src:'braindead.png',kind:'boiler',always:true,min:90,max:.42,stretch:Math.random()<.10}
 ];
 

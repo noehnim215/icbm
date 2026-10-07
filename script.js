@@ -377,6 +377,14 @@ function makeObject(spec){
       placeRandom(o);
       apply(o);
 
+      if(spec.kind==='icbm'){
+        img.addEventListener('pointerdown',e=>e.stopPropagation());
+        img.addEventListener('click',e=>{
+          e.stopPropagation();
+          window.location.href='m.html';
+        });
+      }
+
       if(spec.kind==='rsvp'){
         img.addEventListener('pointerdown',e=>e.stopPropagation());
         img.addEventListener('click',e=>{

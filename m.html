@@ -32,7 +32,8 @@
       height:auto;
       display:none;
       z-index:10;
-      pointer-events:none;
+      pointer-events:auto;
+      cursor:pointer;
       user-select:none;
       -webkit-user-drag:none;
       transform-origin:50% 55%;
@@ -46,6 +47,10 @@
 
   <script>
     const rocket=document.getElementById('rocket');
+
+    rocket.addEventListener('click',()=>{
+      window.location.href='https://noehnim215.github.io/icbm/?v=icbm-fullscreen-1';
+    });
 
     let x=0;
     let y=0;

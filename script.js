@@ -396,8 +396,8 @@ function transformBrainDeadToShirt(o){
   o.bursting=true;
 
   const r=o.el.getBoundingClientRect();
-  const cx=window.innerWidth/2;
-  const cy=window.innerHeight/2;
+  const cx=r.left+r.width/2;
+  const cy=r.top+r.height/2;
   const logoSrc=o.spec.src;
   const logoSpec={...o.spec};
 

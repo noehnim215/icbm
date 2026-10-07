@@ -1,0 +1,157 @@
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#fff;
+}
+body{
+  background:#fff;
+  cursor:default;
+}
+#stage{
+  position:fixed;
+  inset:0;
+  overflow:hidden;
+  background:#fff;
+}
+.poster-object{
+  position:absolute;
+  display:block;
+  height:auto;
+  max-width:none;
+  margin:0;
+  padding:0;
+  user-select:none;
+  -webkit-user-drag:none;
+  touch-action:none;
+  transform-origin:top left;
+  will-change:left,top,transform;
+  z-index:10;
+}
+.poster-object{cursor:pointer}
+.marble-frame{
+  position:fixed;
+  inset:0;
+  z-index:30;
+  pointer-events:none;
+}
+.marble-edge{
+  position:absolute;
+  overflow:hidden;
+  pointer-events:none;
+  line-height:0;
+}
+.marble-top,.marble-bottom{
+  left:0;
+  width:100vw;
+}
+.marble-top{top:0}
+.marble-bottom{bottom:0}
+.marble-left,.marble-right{
+  top:var(--edge-size,54px);
+  bottom:var(--edge-size,54px);
+}
+.marble-left{left:0}
+.marble-right{right:0}
+.marble-edge img{
+  position:absolute;
+  display:block;
+  margin:0;
+  padding:0;
+  max-width:none;
+  object-fit:contain;
+  transform:scale(.88);
+  transform-origin:center center;
+}
+@media(max-width:700px){
+  .marble-edge img{transform:scale(.86)}
+}
+.poster-object.is-pinned{
+  cursor:default;
+  outline:1px solid rgba(255,255,255,.18);
+  outline-offset:3px;
+}
+
+@media(max-width:700px){
+  .marble-edge img{transform:scale(.82)!important}
+}
+
+/* Layer order */
+.poster-object.pow.layer-back{z-index:2!important}
+.poster-object.pow.layer-middle{z-index:9!important}
+.poster-object.pow.layer-top{z-index:18!important}
+.poster-object.date,
+.poster-object.lineup{z-index:10!important}
+.poster-object.icbm{z-index:12!important}
+.poster-object.boiler{z-index:13!important}
+
+.marble-chaos-layer{
+  position:fixed;
+  inset:0;
+  z-index:31;
+  pointer-events:none;
+  overflow:hidden;
+}
+.marble-chaos-ball{
+  position:absolute;
+  display:block;
+  object-fit:contain;
+  margin:0;
+  padding:0;
+  max-width:none;
+  pointer-events:none;
+  will-change:left,top;
+}
+
+/* RSVP variants: strongest distortion range */
+.poster-object.rsvp{
+  z-index:11;
+}
+
+/* ICBM top-three random layers; top3 is highest and is chosen ~69% of loads */
+.poster-object.icbm.layer-top1{z-index:20!important}
+.poster-object.icbm.layer-top2{z-index:24!important}
+.poster-object.icbm.layer-top3{z-index:28!important}
+
+/* pure white site background */
+#stage::before{
+  content:none;
+}
+
+@keyframes rsvpBlink{
+  0%,38%,100%{opacity:1;filter:brightness(1)}
+  42%{opacity:.15;filter:brightness(1.8)}
+  48%{opacity:1;filter:brightness(1.15)}
+  53%{opacity:.28;filter:brightness(1.55)}
+  58%,72%{opacity:1;filter:brightness(1)}
+  76%{opacity:.05}
+  80%,100%{opacity:1}
+}
+.poster-object.rsvp{
+  z-index:16!important;
+  animation:rsvpBlink .95s steps(1,end) infinite;
+}
+
+.rsvp-burst-particle{
+  pointer-events:none!important;
+  user-select:none!important;
+  -webkit-user-drag:none!important;
+}
+
+/* 10% composition: POW definitely behind, date/lineup definitely below ICBM */
+body.composition-powHugeBack_textTiny .poster-object.pow{z-index:2!important}
+body.composition-powHugeBack_textTiny .poster-object.date,
+body.composition-powHugeBack_textTiny .poster-object.lineup{z-index:10!important}
+body.composition-powHugeBack_textTiny .poster-object.icbm{z-index:28!important}
+
+
+
+.poster-object.shirt{z-index:26!important;cursor:pointer;transform-origin:50% 50%!important;animation:none!important;transition:none!important;}
+
+.poster-object.shirt{z-index:26!important;cursor:pointer;transform-origin:50% 50%!important;animation:none!important;transition:none!important;}
+.poster-object.other{cursor:pointer;}
+
+.shirt-crossfade{animation:none!important;transition:none!important;filter:none!important;}
+.poster-object.other{cursor:pointer;}

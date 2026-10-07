@@ -7,6 +7,7 @@ const POW_RARE='RED-NEW-PEW2.png';
 const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsvp6.png','rsvp7.png'];
 const RSVP_POW_POOL=['BLUE-NEW-PEW.png','YELLOW-NEW-PEW2.png'];
 const OTHER_SEQUENCE=['OTHER2.png','OTHER3.png','OTHER4.png','OTHER5.png','OTHER6.png'];
+const OTHER_PRELOAD=OTHER_SEQUENCE.map(src=>{const img=new Image();img.src=src;return img;});
 
 const specs=[
   {id:'icbm',src:'icbm-spray.png',kind:'icbm',always:true,min:380,max:.88,stretch:false,mediumLarge:true},
@@ -394,10 +395,14 @@ function makeObject(spec){
       }
 
       if(spec.kind==='other'){
-        img.addEventListener('pointerdown',e=>e.stopPropagation());
+        img.addEventListener('pointerdown',e=>{
+          e.stopPropagation();
+          e.preventDefault();
+          playOtherSequence(o);
+        });
         img.addEventListener('click',e=>{
           e.stopPropagation();
-          playOtherSequence(o);
+          e.preventDefault();
         });
       }
 
@@ -414,7 +419,7 @@ function playOtherSequence(o){
   const idx=objects.indexOf(o);
   if(idx>=0) objects.splice(idx,1);
 
-  // Freeze the OTHER graphic exactly where it was clicked.
+  // Freeze it at the exact visual position on pointer-down.
   const r=o.el.getBoundingClientRect();
   o.el.getAnimations().forEach(a=>a.cancel());
   o.el.style.position='fixed';
@@ -429,53 +434,34 @@ function playOtherSequence(o){
   o.el.style.opacity='1';
   o.el.style.filter='none';
 
-  let step=0;
+  // Immediate: OTHER -> OTHER2 in the same pointer-down event.
+  o.el.src=OTHER_SEQUENCE[0];
 
-  const advance=()=>{
-    if(step>=OTHER_SEQUENCE.length){
-      // After OTHER6 has stayed for 1 second, dissolve/noise away in place.
-      const noisy=o.el.animate([
-        {opacity:1,filter:'blur(0px) contrast(1)'},
-        {opacity:.75,filter:'blur(2px) contrast(1.5)'},
-        {opacity:.45,filter:'blur(5px) contrast(2)'},
-        {opacity:.18,filter:'blur(10px) contrast(2.6)'},
-        {opacity:0,filter:'blur(18px) contrast(3.2)'}
-      ],{
-        duration:650,
-        easing:'ease-in',
-        fill:'forwards'
-      });
-      noisy.finished.finally(()=>o.el.remove());
+  let step=1;
+  const timer=setInterval(()=>{
+    if(step<OTHER_SEQUENCE.length){
+      o.el.src=OTHER_SEQUENCE[step];
+      step+=1;
       return;
     }
 
-    const src=OTHER_SEQUENCE[step++];
-    const pre=new Image();
-    pre.src=src;
-    pre.onload=()=>{
-      o.el.src=src;
-      setTimeout(advance,1000);
-    };
-    pre.onerror=()=>{
-      o.el.src=src;
-      setTimeout(advance,1000);
-    };
-  };
+    clearInterval(timer);
 
-  // Start immediately with OTHER2 on click.
-  const first=OTHER_SEQUENCE[0];
-  const firstPre=new Image();
-  firstPre.src=first;
-  firstPre.onload=()=>{
-    o.el.src=first;
-    step=1;
-    setTimeout(advance,1000);
-  };
-  firstPre.onerror=()=>{
-    o.el.src=first;
-    step=1;
-    setTimeout(advance,1000);
-  };
+    // OTHER6 has now been visible for its full 1 second.
+    const noisy=o.el.animate([
+      {opacity:1,filter:'blur(0px) contrast(1)'},
+      {opacity:.78,filter:'blur(2px) contrast(1.4)'},
+      {opacity:.48,filter:'blur(5px) contrast(1.9)'},
+      {opacity:.20,filter:'blur(10px) contrast(2.5)'},
+      {opacity:0,filter:'blur(18px) contrast(3.2)'}
+    ],{
+      duration:650,
+      easing:'ease-in',
+      fill:'forwards'
+    });
+
+    noisy.finished.finally(()=>o.el.remove());
+  },1000);
 }
 
 function transformBrainDeadToShirt(o){

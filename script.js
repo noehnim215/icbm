@@ -9,7 +9,8 @@ const RSVP_POW_POOL=['BLUE-NEW-PEW.png','YELLOW-NEW-PEW2.png'];
 
 const specs=[
   {id:'icbm',src:'icbm-spray.png',kind:'icbm',always:true,min:380,max:.88,stretch:false,mediumLarge:true},
-  {id:'boiler',src:'braindead.png',kind:'boiler',always:true,min:90,max:.42,stretch:Math.random()<.10}
+  {id:'boiler',src:'braindead-logo-spray.png',kind:'boiler',always:true,min:90,max:.42,stretch:Math.random()<.10},
+  {id:'nts',src:'nts-live.png',kind:'nts',always:true,min:150,max:.46,stretch:false}
 ];
 
 function rand(min,max){return min+Math.random()*(max-min)}

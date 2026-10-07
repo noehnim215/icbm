@@ -6,6 +6,7 @@ const POW_POOL=['BLUE-NEW-PEW. 2png','BLUE-NEW-PEW.png','GREEN-NEW-PEW-2.png','G
 const POW_RARE='RED-NEW-PEW2.png';
 const RSVP_POOL=['rsvp.png','rsvp2.png','rsvp3.png','rsvp4.png','rsvp5.png','rsvp6.png','rsvp7.png'];
 const RSVP_POW_POOL=['BLUE-NEW-PEW.png','YELLOW-NEW-PEW2.png'];
+const OTHER_SEQUENCE=['OTHER2.png','OTHER3.png','OTHER4.png','OTHER5.png','OTHER6.png'];
 
 const specs=[
   {id:'icbm',src:'icbm-spray.png',kind:'icbm',always:true,min:380,max:.88,stretch:false,mediumLarge:true},
@@ -33,7 +34,8 @@ const chosen=[
   ...specs,
   {id:'date',src:pick(DATE_POOL),kind:'date',min:130,max:.76,stretch:true},
   {id:'lineup',src:pick(LINEUP_POOL),kind:'lineup',min:150,max:.72,stretch:true},
-  {id:'rsvp',src:pick(RSVP_POOL),kind:'rsvp',min:80,max:.56,stretch:true,rsvpExtreme:true}
+  {id:'rsvp',src:pick(RSVP_POOL),kind:'rsvp',min:80,max:.56,stretch:true,rsvpExtreme:true},
+  {id:'other',src:'OTHER.png',kind:'other',min:70,max:.48,stretch:false}
 ];
 
 
@@ -113,6 +115,12 @@ function randomWidth(spec,naturalW,naturalH){
     if(compositionMode==='powHugeBack_textTiny') return widthInRange(.60,1.00);
   }
 
+  if(spec.kind==='other'){
+    const maxByViewport=Math.min(b.width*.48,b.height*aspect*.72);
+    const minByViewport=Math.min(Math.max(70,b.width*.08),maxByViewport);
+    const t=Math.pow(Math.random(),.8);
+    return minByViewport+(maxByViewport-minByViewport)*t;
+  }
 
   if(spec.mediumLarge){
     const minW=Math.min(b.width*.46,Math.max(300,spec.min));
@@ -385,10 +393,70 @@ function makeObject(spec){
         });
       }
 
+      if(spec.kind==='other'){
+        img.addEventListener('pointerdown',e=>e.stopPropagation());
+        img.addEventListener('click',e=>{
+          e.stopPropagation();
+          playOtherSequence(o);
+        });
+      }
+
       objects.push(o);
       resolve();
     };
   });
+}
+
+function playOtherSequence(o){
+  if(o.bursting) return;
+  o.bursting=true;
+
+  const idx=objects.indexOf(o);
+  if(idx>=0) objects.splice(idx,1);
+
+  const r=o.el.getBoundingClientRect();
+  o.el.style.position='fixed';
+  o.el.style.left=r.left+'px';
+  o.el.style.top=r.top+'px';
+  o.el.style.width=r.width+'px';
+  o.el.style.height=r.height+'px';
+  o.el.style.transform='none';
+  o.el.style.transformOrigin='50% 50%';
+  o.el.style.zIndex='92';
+  o.el.style.pointerEvents='none';
+
+  let step=0;
+
+  const showNext=()=>{
+    if(step>=OTHER_SEQUENCE.length){
+      const noisy=o.el.animate([
+        {opacity:1,filter:'blur(0px) contrast(1) saturate(1)',transform:'translate(0,0) scale(1)'},
+        {offset:.18,opacity:.9,filter:'blur(1px) contrast(1.8) saturate(.2)',transform:'translate(-2px,1px) scale(1.01)'},
+        {offset:.36,opacity:.72,filter:'blur(3px) contrast(2.4) saturate(0)',transform:'translate(3px,-2px) scale(.99)'},
+        {offset:.55,opacity:.48,filter:'blur(6px) contrast(2.8) saturate(0)',transform:'translate(-3px,2px) scale(1.015)'},
+        {offset:.76,opacity:.24,filter:'blur(10px) contrast(3.2) saturate(0)',transform:'translate(2px,-1px) scale(.98)'},
+        {opacity:0,filter:'blur(18px) contrast(3.8) saturate(0)',transform:'translate(0,0) scale(.94)'}
+      ],{
+        duration:700,
+        easing:'steps(6,end)',
+        fill:'forwards'
+      });
+
+      noisy.finished.finally(()=>o.el.remove());
+      return;
+    }
+
+    const nextSrc=OTHER_SEQUENCE[step++];
+    const preload=new Image();
+    preload.src=nextSrc;
+    preload.onload=()=>{
+      o.el.src=nextSrc;
+      setTimeout(showNext,1000);
+    };
+    preload.onerror=()=>setTimeout(showNext,1000);
+  };
+
+  showNext();
 }
 
 function transformBrainDeadToShirt(o){

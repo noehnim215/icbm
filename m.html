@@ -5,12 +5,146 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ICBM</title>
   <style>
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff}
-    body{position:fixed;inset:0}
-    img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block}
+    html,body{
+      margin:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      background:#fff;
+    }
+    body{
+      position:fixed;
+      inset:0;
+    }
+    .bg{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:fill;
+      display:block;
+    }
+    #rocket{
+      position:fixed;
+      left:0;
+      top:0;
+      width:clamp(110px,18vw,300px);
+      height:auto;
+      display:none;
+      z-index:10;
+      pointer-events:none;
+      user-select:none;
+      -webkit-user-drag:none;
+      transform-origin:50% 55%;
+      will-change:transform;
+    }
   </style>
 </head>
 <body>
-  <img src="m-bg.png" alt="ICBM visual">
+  <img class="bg" src="m-bg.png" alt="ICBM visual">
+  <img id="rocket" src="mi.png" alt="" aria-hidden="true">
+
+  <script>
+    const rocket=document.getElementById('rocket');
+
+    let x=0;
+    let y=0;
+    let vx=0;
+    let vy=0;
+    let ax=0;
+    let ay=0;
+    let angle=0;
+    let last=performance.now();
+    let steerAt=0;
+    let running=false;
+
+    const rand=(a,b)=>a+Math.random()*(b-a);
+
+    function respawn(){
+      const r=rocket.getBoundingClientRect();
+      x=rand(-r.width*.25,window.innerWidth-r.width*.75);
+      y=window.innerHeight+rand(25,180);
+
+      vx=rand(-90,90);
+      vy=-rand(220,390);
+
+      ax=rand(-24,24);
+      ay=rand(-10,12);
+      steerAt=performance.now()+rand(550,1600);
+
+      rocket.style.display='block';
+    }
+
+    function steer(now){
+      if(now<steerAt) return;
+
+      // Loose, wandering rocket motion without bouncing off the viewport.
+      ax=rand(-55,55);
+      ay=rand(-28,22);
+      vx+=rand(-38,38);
+      vy+=rand(-18,18);
+
+      steerAt=now+rand(500,1500);
+    }
+
+    function tick(now){
+      if(!running) return;
+
+      const dt=Math.min(.035,(now-last)/1000);
+      last=now;
+
+      steer(now);
+
+      vx+=ax*dt;
+      vy+=ay*dt;
+
+      // Keep a general upward tendency but allow free drifting.
+      vy=Math.min(vy,-70);
+
+      x+=vx*dt;
+      y+=vy*dt;
+
+      // Rotate in the direction of travel. mi.png points upward by default.
+      angle=Math.atan2(vy,vx)*180/Math.PI+90;
+
+      rocket.style.transform=
+        'translate3d('+x+'px,'+y+'px,0) rotate('+angle+'deg)';
+
+      const r=rocket.getBoundingClientRect();
+
+      // No bounce. It is allowed to leave the screen.
+      // Once it is well outside, launch again from the bottom after a short random pause.
+      if(
+        r.bottom < -220 ||
+        r.right < -320 ||
+        r.left > window.innerWidth+320
+      ){
+        running=false;
+        rocket.style.display='none';
+
+        setTimeout(()=>{
+          respawn();
+          last=performance.now();
+          running=true;
+          requestAnimationFrame(tick);
+        },rand(700,2400));
+
+        return;
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    setTimeout(()=>{
+      respawn();
+      last=performance.now();
+      running=true;
+      requestAnimationFrame(tick);
+    },3000);
+
+    addEventListener('resize',()=>{
+      // Let the current flight continue naturally through resize.
+    });
+  </script>
 </body>
 </html>
